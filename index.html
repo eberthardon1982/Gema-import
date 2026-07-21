@@ -10,104 +10,111 @@
   <title>GEMA Honduras Import</title>
   <link rel="manifest" href="manifest.json">
 
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
-    /* Reset y base */
-    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    
-    html, body {
-      margin: 0; padding: 0;
-      background: #0f172a;
-      overflow-x: hidden;          /* Prevent horizontal scroll on mobile */
-      -webkit-text-size-adjust: 100%; /* Prevent iOS text resize */
-    }
-
-    #root { min-height: 100vh; min-height: 100dvh; /* Dynamic viewport on iOS */ }
-
-    /* iOS Safe Areas */
-    .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
-    .safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
-
-    /* FIX CRÍTICO: iOS Safari hace zoom en inputs < 16px */
-    /* Forza 16px en todos los inputs para evitar el zoom automático */
-    input, select, textarea {
-      font-size: 16px !important;
-    }
-
-    /* Pero visualmente los mantenemos pequeños con transform */
-    .input-sm {
-      font-size: 16px !important;
-      transform-origin: left center;
-    }
-
-    /* Scrollbars discretas */
-    ::-webkit-scrollbar { width: 3px; height: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-    /* Tap targets mínimos para iOS/Android (44x44px Apple HIG) */
-    button, [role="button"], a, label[for] {
-      min-height: 36px;
-      touch-action: manipulation;
-    }
-
-    /* Prevenir selección de texto en botones */
-    button { -webkit-user-select: none; user-select: none; }
-
-    /* Smooth scrolling */
-    * { -webkit-overflow-scrolling: touch; }
-
-    /* Focus visible para accesibilidad */
-    :focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
-
-    /* Animación de carga inicial */
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-    .fade-in { animation: fadeIn 0.2s ease-out; }
-
-    /* Prevenir flash de contenido sin estilos */
-    #root > div { animation: fadeIn 0.15s ease-out; }
-
-    /* Desktop sidebar transition */
-    @media (min-width: 768px) {
-      .sidebar-nav { transition: width 0.2s ease; }
-    }
+    *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;padding:0;background:#0f172a;overflow-x:hidden;-webkit-text-size-adjust:100%}
+    #root{min-height:100vh}
+    .safe-bottom{padding-bottom:env(safe-area-inset-bottom,0px)}
+    input,select,textarea{font-size:16px!important}
+    ::-webkit-scrollbar{width:3px;height:3px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+    button,[role="button"],a{min-height:36px;touch-action:manipulation}
+    button{-webkit-user-select:none;user-select:none}
+    select{appearance:none;-webkit-appearance:none}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .loader{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0f172a}
+    .spinner{width:44px;height:44px;border:3px solid #1e3a5f;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite}
+    .loader p{color:#64748b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;margin:0}
+    .loader small{color:#1e3a5f;font-family:monospace;font-size:11px;margin:0}
   </style>
 </head>
 <body>
   <div id="root">
-    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0f172a">
-      <div style="width:48px;height:48px;border:3px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div>
-      <p style="color:#64748b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px">Cargando GEMA Honduras Import...</p>
+    <div class="loader">
+      <div class="spinner"></div>
+      <p>GEMA Honduras Import</p>
+      <small>Iniciando sistema...</small>
     </div>
   </div>
 
-  <script type="text/babel" src="app.js" data-presets="react"></script>
+  <!-- Load React from CDN first -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  <script type="text/babel" data-presets="react">
-    // Mount after app.js loads
-    function mount() {
-      try {
-        const rootEl = document.getElementById('root');
-        if (!rootEl) return setTimeout(mount, 100);
-        rootEl.innerHTML = '';
-        const root = ReactDOM.createRoot(rootEl);
-        root.render(React.createElement(App));
-      } catch(e) {
-        document.getElementById('root').innerHTML =
-          '<div style="color:#f87171;padding:24px;font-family:sans-serif;max-width:400px;margin:40px auto">' +
-          '<p style="font-size:18px;font-weight:bold;margin-bottom:8px">Error al cargar la aplicación</p>' +
-          '<p style="color:#94a3b8;font-size:14px">' + e.message + '</p>' +
-          '<button onclick="location.reload()" style="margin-top:16px;background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px">Reintentar</button>' +
-          '</div>';
-      }
+  <script>
+    // Update loader status
+    function setStatus(msg) {
+      const el = document.querySelector('.loader small');
+      if(el) el.textContent = msg;
     }
-    setTimeout(mount, 800);
+
+    // Load Babel and app asynchronously with status updates
+    setStatus('Cargando motor...');
+
+    const babelScript = document.createElement('script');
+    babelScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js';
+    babelScript.onload = function() {
+      setStatus('Motor listo. Cargando app...');
+      
+      const appScript = document.createElement('script');
+      appScript.type = 'text/babel';
+      appScript.setAttribute('data-presets', 'react');
+      appScript.src = 'app.js?' + Date.now(); // cache bust
+      
+      appScript.onerror = function() {
+        document.getElementById('root').innerHTML = 
+          '<div style="padding:24px;text-align:center;color:#f87171;font-family:sans-serif">' +
+          '<p style="font-size:16px;font-weight:bold">Error al cargar app.js</p>' +
+          '<p style="color:#94a3b8;font-size:13px">Verificá que el archivo app.js esté en GitHub</p>' +
+          '<button onclick="location.reload()" style="margin-top:12px;background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer">Reintentar</button>' +
+          '</div>';
+      };
+      
+      document.head.appendChild(appScript);
+
+      // Check periodically if App is defined
+      let attempts = 0;
+      const check = setInterval(function() {
+        attempts++;
+        setStatus('Procesando... (' + attempts + 's)');
+        
+        if(typeof App !== 'undefined') {
+          clearInterval(check);
+          setStatus('¡Listo!');
+          try {
+            const rootEl = document.getElementById('root');
+            rootEl.innerHTML = '';
+            const root = ReactDOM.createRoot(rootEl);
+            root.render(React.createElement(App));
+          } catch(e) {
+            document.getElementById('root').innerHTML = 
+              '<div style="padding:24px;text-align:center;color:#f87171;font-family:sans-serif">' +
+              '<p>' + e.message + '</p>' +
+              '<button onclick="location.reload()" style="margin-top:12px;background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer">Reintentar</button>' +
+              '</div>';
+          }
+        }
+        
+        if(attempts > 120) { // 2 minutes max
+          clearInterval(check);
+          document.getElementById('root').innerHTML = 
+            '<div style="padding:24px;text-align:center;color:#f87171;font-family:sans-serif">' +
+            '<p style="font-size:16px;font-weight:bold">Tiempo de carga excedido</p>' +
+            '<p style="color:#94a3b8;font-size:13px">Intentá desde WiFi o una computadora</p>' +
+            '<button onclick="location.reload()" style="margin-top:12px;background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer">Reintentar</button>' +
+            '</div>';
+        }
+      }, 1000);
+    };
+
+    babelScript.onerror = function() {
+      setStatus('Error de red. Verificá tu conexión.');
+    };
+
+    document.head.appendChild(babelScript);
   </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import * as XLSX from "xlsx";
+const { useState, useEffect, useMemo } = React;
+// XLSX loaded from CDN if needed
 
 // ══════════════════════════════════════════════════════════════
 // CONSTANTS
