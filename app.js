@@ -1614,58 +1614,6 @@ function VehFormModal({onClose,onSave,clientes,catalogo,gruas,fletes,precios,gru
     </div>}
   </Modal>;
 }
-  const [q,setQ]=useState("");
-  const filtered=useMemo(()=>{
-    const query=q.trim().toLowerCase();
-    if(!query) return catalogo.slice(0,24);
-    return catalogo.filter(c=>(c.marca+" "+c.modelo+" "+(c.generacion||"")+" "+(c.carroceria||"")+" "+(c.combustible||"")).toLowerCase().includes(query)).slice(0,30);
-  },[catalogo,q]);
-
-  const demC={Alta:"text-emerald-400",Media:"text-amber-400",Baja:"text-red-400"};
-  const repC={Alta:"text-emerald-400",Media:"text-amber-400",Baja:"text-red-400"};
-
-  return <div className="space-y-3">
-    <div className="bg-blue-900/30 border border-blue-700/40 rounded-xl px-4 py-3 text-xs text-slate-300">
-      💡 Selecciona el modelo del catálogo para que el sistema rellene automáticamente el tipo, cilindrada, combustible y el precio de referencia en Honduras.
-    </div>
-    <input value={q} onChange={e=>setQ(e.target.value)} autoFocus
-      placeholder="Buscar marca o modelo... ej: Corolla, Hilux diesel, HD65, Frontier..."
-      className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-slate-600"/>
-    <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-      {filtered.length===0&&<p className="text-slate-500 text-center py-6 text-sm">Sin resultados. Intenta con otro término.</p>}
-      {filtered.map(c=>(
-        <button key={c.id} onClick={()=>onSelect(c)}
-          className="w-full text-left bg-white/5 hover:bg-blue-900/30 border border-white/10 hover:border-blue-600/50 rounded-xl p-3 transition-all">
-          <div className="flex justify-between items-start gap-2">
-            <div className="flex-1 min-w-0">
-              <p className="text-white font-bold text-sm">{c.marca} {c.modelo}</p>
-              <p className="text-slate-400 text-xs mt-0.5">{c.generacion} · {c.carroceria} · {c.traccion}</p>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {c.cilindrada_cc>0&&<span className="text-xs bg-white/10 text-slate-300 px-2 py-0.5 rounded-full">{c.cilindrada_cc}cc</span>}
-                <span className={`text-xs bg-white/10 px-2 py-0.5 rounded-full ${c.combustible==="diesel"?"text-amber-300":c.combustible==="hibrido"||c.combustible==="electrico"?"text-emerald-300":"text-blue-300"}`}>
-                  {c.combustible==="electrico"?"⚡ Eléctrico":c.combustible==="hibrido"?"🔋 Híbrido":c.combustible==="diesel"?"🛢 Diesel":"⛽ Gasolina"}
-                </span>
-                {(c.combustible==="hibrido"||c.combustible==="electrico")&&<span className="text-xs bg-emerald-900/50 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-700">ISC 0%</span>}
-                {c.cafta_aplica&&<span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-full border border-blue-700">CAFTA</span>}
-              </div>
-              <p className="text-slate-500 text-xs mt-1 truncate">{c.tipo_vehiculo}</p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-emerald-400 font-bold text-xs">${(c.precio_hn_bajo||0).toLocaleString()}–${(c.precio_hn_alto||0).toLocaleString()}</p>
-              <p className="text-slate-500 text-xs">Mercado HN</p>
-              <p className={`text-xs font-bold mt-1 ${demC[c.demanda_hn]||"text-slate-400"}`}>⬆ {c.demanda_hn}</p>
-              <p className={`text-xs ${repC[c.repuestos_hn]||"text-slate-400"}`}>🔧 {c.repuestos_hn}</p>
-            </div>
-          </div>
-          {c.observaciones&&<p className="text-xs text-amber-400/80 mt-1.5 border-t border-white/5 pt-1.5 leading-tight">{c.observaciones}</p>}
-        </button>
-      ))}
-    </div>
-    <button onClick={onSkip} className="w-full text-center text-xs text-slate-500 hover:text-slate-300 py-2">
-      Continuar sin seleccionar del catálogo →
-    </button>
-  </div>;
-}
 
 // ══════════════════════════════════════════════════════════════
 // CLIENTES
@@ -4198,7 +4146,6 @@ Responde SOLO en formato JSON válido con esta estructura exacta:
       }
     }catch(e){setBusqResult("Error: "+e.message);}
     setBusqLoading(false);
-  }
       const nombreVeh=vehCat?`${vehCat.marca} ${vehCat.modelo}`:"vehículo comercial coreano";
       const motor=vehCat?.motor||"motor diesel";
       const puertoStr=busqFiltros.puerto==="incheon"?"puerto de Incheon":busqFiltros.puerto==="pyeongtaek"?"puerto de Pyeongtaek":"cualquier puerto de exportación";
@@ -6188,7 +6135,6 @@ function MaxBidScreen({catalogo,gruas,fletes,precios,gruaLocalHN,config}){
       <p className="text-xs text-slate-400">El modelo {catSel.marca} {catSel.modelo} no tiene precio de mercado Honduras registrado. Ve a Admin → Catálogo para agregarlo.</p>
     </div>}
   </div>;
-}
 }
 
 function BottomNav({screen,onNav,session,vehiculos,handleLogout,precios}){
