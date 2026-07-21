@@ -15,8 +15,7 @@ html,body{margin:0;padding:0;background:#0f172a;overflow-x:hidden;-webkit-text-s
 #root{min-height:100vh}
 input,select,textarea{font-size:16px!important}
 select{-webkit-appearance:none;appearance:none}
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
 button{-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .safe-bottom{padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -26,7 +25,7 @@ button{-webkit-user-select:none;user-select:none;touch-action:manipulation}
 #pb{width:240px;height:4px;background:#1e293b;border-radius:2px;overflow:hidden}
 #pf{height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:2px;width:0%;transition:width 0.5s}
 #st{color:#3b82f6;font-size:13px;font-weight:700}
-#ss{color:#475569;font-size:11px;text-align:center;padding:0 20px}
+#ss{color:#475569;font-size:11px;text-align:center;max-width:270px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -38,42 +37,148 @@ button{-webkit-user-select:none;user-select:none;touch-action:manipulation}
 <div id="ss">Iniciando...</div>
 </div>
 <script>
-const VER='4.0',CK='gema_app_'+VER;
+const VER='6.0', CK='gema6';
 const $=id=>document.getElementById(id);
-const p=(m,s,v)=>{$('st')&&($('st').textContent=m);$('ss')&&($('ss').textContent=s||'');v!==undefined&&$('pf')&&($('pf').style.width=v+'%');};
-const hide=()=>{const l=$('L');l&&(l.style.opacity='0',l.style.transition='opacity 0.3s',setTimeout(()=>l.remove(),350));};
-const showErr=(m,d)=>{const l=$('L');l&&(l.innerHTML='<div style="text-align:center;padding:24px;max-width:300px"><div style="font-size:32px;margin-bottom:10px">⚠️</div><p style="color:#f87171;font-size:15px;font-weight:700;margin:0 0 8px">'+m+'</p><p style="color:#64748b;font-size:12px;margin:0 0 16px;line-height:1.5">'+d+'</p><button onclick="localStorage.removeItem(\''+CK+'\');location.reload()" style="background:#3b82f6;color:white;border:none;padding:12px 24px;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600">Reintentar</button><p style="color:#334155;font-size:11px;margin-top:10px">💡 Conectate a WiFi para la primera carga</p></div>');};
-const mount=code=>{try{new Function(code)();if(typeof App!=='undefined'){ReactDOM.createRoot($('root')).render(React.createElement(App));hide();}else showErr('Error al iniciar','App no encontrada');}catch(e){localStorage.removeItem(CK);showErr('Error en app',e.message.substring(0,100));}};
-const ld=(src,ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=fail||(()=>showErr('Sin conexión','No se pudo cargar '+src.split('/').pop()+'. Verificá tu WiFi.'));document.head.appendChild(s);};
-const U='https://unpkg.com/',C='https://cdnjs.cloudflare.com/ajax/libs/';
+const p=(m,s,v)=>{
+  $('st')&&($('st').textContent=m);
+  $('ss')&&($('ss').textContent=s||'');
+  v!==undefined&&$('pf')&&($('pf').style.width=v+'%');
+};
+const hide=()=>{
+  const l=$('L');
+  if(l){l.style.opacity='0';l.style.transition='opacity 0.3s';setTimeout(()=>l.remove(),350);}
+};
+const showErr=(m,d)=>{
+  const l=$('L');
+  if(!l)return;
+  l.innerHTML='<div style="text-align:center;padding:24px;max-width:300px">'+
+    '<div style="font-size:32px;margin-bottom:10px">⚠️</div>'+
+    '<p style="color:#f87171;font-size:15px;font-weight:700;margin:0 0 8px">'+m+'</p>'+
+    '<p style="color:#64748b;font-size:12px;margin:0 0 16px;line-height:1.5">'+d+'</p>'+
+    '<button onclick="localStorage.removeItem(\''+CK+'\');location.reload()" '+
+    'style="background:#3b82f6;color:white;border:none;padding:12px 24px;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600">'+
+    'Reintentar</button>'+
+    '<p style="color:#334155;font-size:11px;margin-top:10px">💡 La primera carga requiere WiFi bueno o computadora</p></div>';
+};
+
+const ld=(src,ok,fail)=>{
+  const s=document.createElement('script');
+  s.src=src;
+  s.onload=ok;
+  s.onerror=fail||(()=>showErr('Sin conexión','No cargó: '+src.split('/').pop()+'. Verificá WiFi.'));
+  document.head.appendChild(s);
+};
+
+const mount=code=>{
+  try{
+    new Function(code)();
+    if(typeof App!=='undefined'){
+      ReactDOM.createRoot($('root')).render(React.createElement(App));
+      hide();
+    }else showErr('Error al iniciar','La función App no se encontró');
+  }catch(e){
+    localStorage.removeItem(CK);
+    showErr('Error al iniciar',e.message.substring(0,100));
+  }
+};
+
+// Check cache first
 const cached=localStorage.getItem(CK);
-cached?p('Cargando app ⚡','Versión en caché',30):p('Descargando React...','Paso 1 de 4 — Solo la primera vez',5);
-ld(U+'react@18/umd/react.production.min.js',()=>{
-  cached||p('Cargando interfaz...','Paso 2 de 4',22);
-  ld(U+'react-dom@18/umd/react-dom.production.min.js',()=>{
-    cached||p('Cargando estilos...','Paso 3 de 4',38);
+if(cached){
+  p('Cargando app ⚡','Versión guardada — carga instantánea',25);
+}else{
+  p('Descargando dependencias...','Solo la primera vez — conectate a WiFi bueno',5);
+}
+
+// Load React first (always needed)
+ld('https://unpkg.com/react@18/umd/react.production.min.js',()=>{
+  ld('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',()=>{
     ld('https://cdn.tailwindcss.com',()=>{
-      cached||p('Descargando app...','Paso 4 de 4',54);
-      fetch('app.js?v='+VER).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(src=>{
-        const c2=localStorage.getItem(CK);
-        if(c2){p('Iniciando...','',95);setTimeout(()=>mount(c2),100);}
-        else{
-          p('Compilando...','Primera vez: 2-5 min en WiFi ☕',65);
-          ld(C+'babel-standalone/7.23.5/babel.min.js',()=>{
-            setTimeout(()=>{
-              try{
-                const out=Babel.transform(src,{presets:['react'],sourceType:'script'}).code;
-                try{localStorage.setItem(CK,out);}catch(e){}
-                p('¡Listo!','',100);
-                setTimeout(()=>mount(out),200);
-              }catch(e){showErr('Error de compilación',e.message.substring(0,100));}
-            },50);
-          });
-        }
-      }).catch(()=>showErr('No se pudo descargar app.js','Verificá GitHub'));
+      
+      if(cached){
+        p('Iniciando...','',95);
+        setTimeout(()=>mount(cached),100);
+        return;
+      }
+      
+      // Fetch app code
+      p('Descargando app...','',50);
+      fetch('app.js?v='+VER)
+        .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
+        .then(src=>{
+          p('Compilando con Web Worker...','Esto puede tardar unos minutos. Dejá el teléfono conectado al WiFi ☕',65);
+          
+          // Try Web Worker approach first (non-blocking)
+          if(typeof Worker!=='undefined'){
+            try{
+              const workerCode=`
+                importScripts('https://unpkg.com/@babel/standalone@7.23.5/babel.min.js');
+                self.onmessage=function(e){
+                  try{
+                    const r=Babel.transform(e.data,{presets:['react'],sourceType:'script'});
+                    self.postMessage({ok:true,code:r.code});
+                  }catch(err){
+                    self.postMessage({ok:false,error:err.message});
+                  }
+                };
+              `;
+              const blob=new Blob([workerCode],{type:'application/javascript'});
+              const worker=new Worker(URL.createObjectURL(blob));
+              
+              // Timeout after 5 minutes
+              const timeout=setTimeout(()=>{
+                worker.terminate();
+                showErr('Tiempo excedido','La compilación tardó más de 5 minutos. Intentá desde una computadora.');
+              }, 300000);
+              
+              worker.onmessage=function(e){
+                clearTimeout(timeout);
+                if(e.data.ok){
+                  try{localStorage.setItem(CK,e.data.code);}catch(ex){}
+                  p('¡Listo! 🎉','',100);
+                  setTimeout(()=>mount(e.data.code),200);
+                }else{
+                  showErr('Error de compilación',e.data.error.substring(0,100));
+                }
+              };
+              
+              worker.onerror=function(e){
+                clearTimeout(timeout);
+                worker.terminate();
+                // Fallback to main thread
+                compilarEnMainThread(src);
+              };
+              
+              worker.postMessage(src);
+              
+            }catch(ex){
+              compilarEnMainThread(src);
+            }
+          }else{
+            compilarEnMainThread(src);
+          }
+        })
+        .catch(()=>showErr('Error de red','No se pudo descargar app.js'));
+      
     });
   });
 });
+
+function compilarEnMainThread(src){
+  p('Compilando...','Esto puede tardar varios minutos en el teléfono ☕',70);
+  ld('https://unpkg.com/@babel/standalone@7.23.5/babel.min.js',()=>{
+    setTimeout(()=>{
+      try{
+        const out=Babel.transform(src,{presets:['react'],sourceType:'script'}).code;
+        try{localStorage.setItem(CK,out);}catch(e){}
+        p('¡Listo! 🎉','',100);
+        setTimeout(()=>mount(out),200);
+      }catch(e){
+        showErr('Error de compilación',e.message.substring(0,100));
+      }
+    },100);
+  });
+}
 </script>
 </body>
 </html>
