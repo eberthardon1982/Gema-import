@@ -6313,6 +6313,7 @@ function App(){
         return;
       }
     }
+    const [usrs,vehs,cls,cfg,cat,prc,gru,flt,ghl,peds,provs]=await Promise.all([
       dbGet("usuarios","?order=created_at.asc"),
       dbGet("vehiculos","?order=created_at.desc"),
       dbGet("clientes","?order=created_at.desc"),
