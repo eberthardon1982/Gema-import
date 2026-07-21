@@ -5732,7 +5732,6 @@ Por favor:
       <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"/>
       <p className="text-slate-400 text-sm">Claude está evaluando daños, calculando rentabilidad<br/>y buscando banderas rojas...</p>
     </div>}
-    </div>}
 
     {/* RESULTADOS — solo en modo manual */}
     {analisis&&modo==="manual"&&<div className="space-y-4">
