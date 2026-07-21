@@ -4148,6 +4148,11 @@ Responde SOLO en formato JSON válido con esta estructura exacta:
       }
     }catch(e){setBusqResult("Error: "+e.message);}
     setBusqLoading(false);
+  }
+
+  async function buscarEnAutowini(){
+    setBusqLoading(true);setBusqResult("");
+    try{
       const nombreVeh=vehCat?`${vehCat.marca} ${vehCat.modelo}`:"vehículo comercial coreano";
       const motor=vehCat?.motor||"motor diesel";
       const puertoStr=busqFiltros.puerto==="incheon"?"puerto de Incheon":busqFiltros.puerto==="pyeongtaek"?"puerto de Pyeongtaek":"cualquier puerto de exportación";
