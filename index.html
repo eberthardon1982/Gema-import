@@ -9,12 +9,10 @@
 <meta name="theme-color" content="#0f172a">
 <title>GEMA Honduras Import</title>
 <link rel="manifest" href="manifest.json">
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" as="script" crossorigin>
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" as="script" crossorigin>
 <style>
 *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:#0f172a;overflow-x:hidden;-webkit-text-size-adjust:100%}
-#root{min-height:100vh;min-height:100dvh}
+#root{min-height:100vh}
 input,select,textarea{font-size:16px!important}
 select{-webkit-appearance:none;appearance:none}
 ::-webkit-scrollbar{width:3px;height:3px}
@@ -23,86 +21,56 @@ select{-webkit-appearance:none;appearance:none}
 button{-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .safe-bottom{padding-bottom:env(safe-area-inset-bottom,0px)}
 @keyframes spin{to{transform:rotate(360deg)}}
-#loader{position:fixed;inset:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;transition:opacity 0.3s}
-.spin{width:44px;height:44px;border:3px solid #1e3a5f;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite}
-#pbar{width:220px;height:4px;background:#1e293b;border-radius:2px;overflow:hidden;margin-top:4px}
-#pfill{height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:2px;width:0%;transition:width 0.6s ease}
-#st{color:#3b82f6;font-size:13px;font-weight:700;letter-spacing:0.3px}
-#ss{color:#475569;font-size:11px}
+#L{position:fixed;inset:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.sp{width:44px;height:44px;border:3px solid #1e3a5f;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite}
+#pb{width:240px;height:4px;background:#1e293b;border-radius:2px;overflow:hidden}
+#pf{height:100%;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:2px;width:0%;transition:width 0.5s}
+#st{color:#3b82f6;font-size:13px;font-weight:700}
+#ss{color:#475569;font-size:11px;text-align:center;padding:0 20px}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<div id="loader">
-  <div class="spin"></div>
-  <div id="pbar"><div id="pfill"></div></div>
-  <div id="st">GEMA Honduras Import</div>
-  <div id="ss">Iniciando...</div>
+<div id="L">
+<div class="sp"></div>
+<div id="pb"><div id="pf"></div></div>
+<div id="st">GEMA Honduras Import</div>
+<div id="ss">Iniciando...</div>
 </div>
 <script>
-if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
-
+const VER='4.0',CK='gema_app_'+VER;
 const $=id=>document.getElementById(id);
-const setStatus=(msg,sub,pct)=>{
-  if($('st'))$('st').textContent=msg;
-  if($('ss'))$('ss').textContent=sub||'';
-  if($('pfill')&&pct!==undefined)$('pfill').style.width=pct+'%';
-};
-const hideLoader=()=>{
-  const l=$('loader');
-  if(l){l.style.opacity='0';setTimeout(()=>l.remove(),350);}
-};
-const showError=(msg,detail)=>{
-  const l=$('loader');
-  if(l)l.innerHTML='<div style="text-align:center;padding:28px;max-width:300px"><p style="font-size:36px;margin:0 0 12px">⚠️</p><p style="color:#f87171;font-size:15px;font-weight:700;margin:0 0 8px">'+msg+'</p><p style="color:#64748b;font-size:12px;margin:0 0 20px;line-height:1.5">'+detail+'</p><button onclick="location.reload()" style="background:#3b82f6;color:white;border:none;padding:12px 28px;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600">Reintentar</button><p style="color:#334155;font-size:11px;margin-top:12px">💡 Conectate a WiFi para la primera carga</p></div>';
-};
-
-let pct=0;
-const grow=setInterval(()=>{pct=Math.min(pct+0.3,88);if($('pfill'))$('pfill').style.width=pct+'%';},800);
-
-const loadS=(src,ok,err)=>{
-  const s=document.createElement('script');
-  s.src=src;s.crossOrigin='anonymous';
-  s.onload=ok;s.onerror=err||function(){showError('Sin conexión','Verificá tu internet e intentá de nuevo');clearInterval(grow);};
-  document.head.appendChild(s);
-};
-
-const CDN='https://cdn.jsdelivr.net/npm/';
-
-setStatus('Cargando React...','Paso 1 de 4',5);
-loadS(CDN+'react@18/umd/react.production.min.js',()=>{
-  setStatus('Cargando interfaz...','Paso 2 de 4',20);
-  loadS(CDN+'react-dom@18/umd/react-dom.production.min.js',()=>{
-    setStatus('Cargando estilos...','Paso 3 de 4',38);
-    loadS('https://cdn.tailwindcss.com',()=>{
-      setStatus('Cargando Babel...','Paso 4 de 4',55);
-      loadS(CDN+'@babel/standalone@7.23.5/babel.min.js',()=>{
-        setStatus('Procesando app...','Casi listo, esperá un momento',72);
-        fetch('app.js?v='+Date.now())
-          .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
-          .then(src=>{
-            setStatus('Iniciando...','',90);
-            try{
-              const out=Babel.transform(src,{presets:['react'],sourceType:'script'}).code;
-              // eslint-disable-next-line no-new-func
-              new Function('React','ReactDOM',out)(React,ReactDOM);
-              clearInterval(grow);
-              $('pfill').style.width='100%';
-              if(typeof App!=='undefined'){
-                const root=ReactDOM.createRoot($('root'));
-                root.render(React.createElement(App));
-                hideLoader();
-              }else{
-                showError('Error al iniciar','La función App no se encontró en app.js');
-              }
-            }catch(e){
-              clearInterval(grow);
-              showError('Error en la aplicación',e.message.substring(0,120));
-              console.error(e);
-            }
-          })
-          .catch(e=>{clearInterval(grow);showError('No se pudo cargar app.js','Verificá que el archivo esté en GitHub correctamente');});
-      });
+const p=(m,s,v)=>{$('st')&&($('st').textContent=m);$('ss')&&($('ss').textContent=s||'');v!==undefined&&$('pf')&&($('pf').style.width=v+'%');};
+const hide=()=>{const l=$('L');l&&(l.style.opacity='0',l.style.transition='opacity 0.3s',setTimeout(()=>l.remove(),350));};
+const showErr=(m,d)=>{const l=$('L');l&&(l.innerHTML='<div style="text-align:center;padding:24px;max-width:300px"><div style="font-size:32px;margin-bottom:10px">⚠️</div><p style="color:#f87171;font-size:15px;font-weight:700;margin:0 0 8px">'+m+'</p><p style="color:#64748b;font-size:12px;margin:0 0 16px;line-height:1.5">'+d+'</p><button onclick="localStorage.removeItem(\''+CK+'\');location.reload()" style="background:#3b82f6;color:white;border:none;padding:12px 24px;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600">Reintentar</button><p style="color:#334155;font-size:11px;margin-top:10px">💡 Conectate a WiFi para la primera carga</p></div>');};
+const mount=code=>{try{new Function(code)();if(typeof App!=='undefined'){ReactDOM.createRoot($('root')).render(React.createElement(App));hide();}else showErr('Error al iniciar','App no encontrada');}catch(e){localStorage.removeItem(CK);showErr('Error en app',e.message.substring(0,100));}};
+const ld=(src,ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=fail||(()=>showErr('Sin conexión','No se pudo cargar '+src.split('/').pop()+'. Verificá tu WiFi.'));document.head.appendChild(s);};
+const U='https://unpkg.com/',C='https://cdnjs.cloudflare.com/ajax/libs/';
+const cached=localStorage.getItem(CK);
+cached?p('Cargando app ⚡','Versión en caché',30):p('Descargando React...','Paso 1 de 4 — Solo la primera vez',5);
+ld(U+'react@18/umd/react.production.min.js',()=>{
+  cached||p('Cargando interfaz...','Paso 2 de 4',22);
+  ld(U+'react-dom@18/umd/react-dom.production.min.js',()=>{
+    cached||p('Cargando estilos...','Paso 3 de 4',38);
+    ld('https://cdn.tailwindcss.com',()=>{
+      cached||p('Descargando app...','Paso 4 de 4',54);
+      fetch('app.js?v='+VER).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(src=>{
+        const c2=localStorage.getItem(CK);
+        if(c2){p('Iniciando...','',95);setTimeout(()=>mount(c2),100);}
+        else{
+          p('Compilando...','Primera vez: 2-5 min en WiFi ☕',65);
+          ld(C+'babel-standalone/7.23.5/babel.min.js',()=>{
+            setTimeout(()=>{
+              try{
+                const out=Babel.transform(src,{presets:['react'],sourceType:'script'}).code;
+                try{localStorage.setItem(CK,out);}catch(e){}
+                p('¡Listo!','',100);
+                setTimeout(()=>mount(out),200);
+              }catch(e){showErr('Error de compilación',e.message.substring(0,100));}
+            },50);
+          });
+        }
+      }).catch(()=>showErr('No se pudo descargar app.js','Verificá GitHub'));
     });
   });
 });
