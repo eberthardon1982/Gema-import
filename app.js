@@ -5717,7 +5717,7 @@ Por favor:
               <span className="text-slate-300">{cat.cilindrada_cc}cc {cat.combustible}</span>
               {cat.precio_hn_bajo&&<span className="text-emerald-400 ml-2">Mercado HN: ${cat.precio_hn_bajo.toLocaleString()}–${cat.precio_hn_alto.toLocaleString()}</span>}
               {!cat.precio_hn_bajo&&<span className="text-amber-400 ml-2">⚠️ Sin precio HN</span>}
-            </div>:<div className="mt-2 text-xs text-slate-600">Modelo no encontrado en catálogo — Claude igual lo analiza</div>
+            </div>:<div className="mt-2 text-xs text-slate-600">Modelo no encontrado en catálogo — Claude igual lo analiza</div>;
           })()}
         </Card>
       ))}
