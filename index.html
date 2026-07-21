@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GEMA Honduras Import">
+  <meta name="theme-color" content="#0f172a">
+  <title>GEMA Honduras Import</title>
+  <link rel="manifest" href="manifest.json">
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Reset y base */
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    html, body {
+      margin: 0; padding: 0;
+      background: #0f172a;
+      overflow-x: hidden;          /* Prevent horizontal scroll on mobile */
+      -webkit-text-size-adjust: 100%; /* Prevent iOS text resize */
+    }
+
+    #root { min-height: 100vh; min-height: 100dvh; /* Dynamic viewport on iOS */ }
+
+    /* iOS Safe Areas */
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+    .safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
+
+    /* FIX CRÍTICO: iOS Safari hace zoom en inputs < 16px */
+    /* Forza 16px en todos los inputs para evitar el zoom automático */
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+
+    /* Pero visualmente los mantenemos pequeños con transform */
+    .input-sm {
+      font-size: 16px !important;
+      transform-origin: left center;
+    }
+
+    /* Scrollbars discretas */
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Tap targets mínimos para iOS/Android (44x44px Apple HIG) */
+    button, [role="button"], a, label[for] {
+      min-height: 36px;
+      touch-action: manipulation;
+    }
+
+    /* Prevenir selección de texto en botones */
+    button { -webkit-user-select: none; user-select: none; }
+
+    /* Smooth scrolling */
+    * { -webkit-overflow-scrolling: touch; }
+
+    /* Focus visible para accesibilidad */
+    :focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+
+    /* Animación de carga inicial */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+
+    /* Prevenir flash de contenido sin estilos */
+    #root > div { animation: fadeIn 0.15s ease-out; }
+
+    /* Desktop sidebar transition */
+    @media (min-width: 768px) {
+      .sidebar-nav { transition: width 0.2s ease; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0f172a">
+      <div style="width:48px;height:48px;border:3px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+      <p style="color:#64748b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px">Cargando GEMA Honduras Import...</p>
+    </div>
+  </div>
+
+  <script type="text/babel" src="app.js" data-presets="react"></script>
+
+  <script type="text/babel" data-presets="react">
+    // Mount after app.js loads
+    function mount() {
+      try {
+        const rootEl = document.getElementById('root');
+        if (!rootEl) return setTimeout(mount, 100);
+        rootEl.innerHTML = '';
+        const root = ReactDOM.createRoot(rootEl);
+        root.render(React.createElement(App));
+      } catch(e) {
+        document.getElementById('root').innerHTML =
+          '<div style="color:#f87171;padding:24px;font-family:sans-serif;max-width:400px;margin:40px auto">' +
+          '<p style="font-size:18px;font-weight:bold;margin-bottom:8px">Error al cargar la aplicación</p>' +
+          '<p style="color:#94a3b8;font-size:14px">' + e.message + '</p>' +
+          '<button onclick="location.reload()" style="margin-top:16px;background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px">Reintentar</button>' +
+          '</div>';
+      }
+    }
+    setTimeout(mount, 800);
+  </script>
+</body>
+</html>
