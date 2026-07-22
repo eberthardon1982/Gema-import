@@ -308,9 +308,9 @@ const today = () => new Date().toISOString().split("T")[0];
 const daysB = (a,b=today()) => a ? Math.round(Math.abs(new Date(b)-new Date(a))/86400000) : 0;
 const totalCosto = c => !c?0:Object.values(c).reduce((s,v)=>s+(+v||0),0);
 
-// Personal storage helpers
-async function pget(key){ try{ const r=await window.storage.get(key,false); return r?JSON.parse(r.value):null; }catch{ return null; }}
-async function pset(key,val){ try{ await window.storage.set(key,JSON.stringify(val),false); }catch{} }
+// Personal storage helpers (localStorage real del navegador)
+async function pget(key){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):null; }catch{ return null; }}
+async function pset(key,val){ try{ localStorage.setItem(key,JSON.stringify(val)); }catch{} }
 
 // ══════════════════════════════════════════════════════════════
 // SUPABASE REST API LAYER
@@ -5717,11 +5717,11 @@ Por favor:
               <span className="text-slate-300">{cat.cilindrada_cc}cc {cat.combustible}</span>
               {cat.precio_hn_bajo&&<span className="text-emerald-400 ml-2">Mercado HN: ${cat.precio_hn_bajo.toLocaleString()}–${cat.precio_hn_alto.toLocaleString()}</span>}
               {!cat.precio_hn_bajo&&<span className="text-amber-400 ml-2">⚠️ Sin precio HN</span>}
-            </div>:<div className="mt-2 text-xs text-slate-600">Modelo no encontrado en catálogo — Claude igual lo analiza</div>
+            </div>:<div className="mt-2 text-xs text-slate-600">Modelo no encontrado en catálogo — Claude igual lo analiza</div>;
           })()}
         </Card>
       ))}
-    </div>}
+    </div>
 
     {/* Botón analizar */}
     {err&&<p className="text-red-400 text-sm bg-red-900/30 border border-red-700 rounded-xl px-4 py-3">{err}</p>}
@@ -5731,6 +5731,7 @@ Por favor:
     {loading&&<div className="text-center space-y-2">
       <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"/>
       <p className="text-slate-400 text-sm">Claude está evaluando daños, calculando rentabilidad<br/>y buscando banderas rojas...</p>
+    </div>}
     </div>}
 
     {/* RESULTADOS — solo en modo manual */}
@@ -6313,7 +6314,6 @@ function App(){
         return;
       }
     }
-    const [usrs,vehs,cls,cfg,cat,prc,gru,flt,ghl,peds,provs]=await Promise.all([
       dbGet("usuarios","?order=created_at.asc"),
       dbGet("vehiculos","?order=created_at.desc"),
       dbGet("clientes","?order=created_at.desc"),
