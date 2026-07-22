@@ -37,7 +37,7 @@ button{-webkit-user-select:none;user-select:none;touch-action:manipulation}
 <div id="ss">Iniciando...</div>
 </div>
 <script>
-const VER='6.0', CK='gema6';
+const VER='7.0', CK='gema7';
 const $=id=>document.getElementById(id);
 const p=(m,s,v)=>{
   $('st')&&($('st').textContent=m);
@@ -71,9 +71,10 @@ const ld=(src,ok,fail)=>{
 
 const mount=code=>{
   try{
-    new Function(code)();
-    if(typeof App!=='undefined'){
-      ReactDOM.createRoot($('root')).render(React.createElement(App));
+    const wrapped=code+'\nwindow.__GEMA_APP__=App;';
+    new Function(wrapped)();
+    if(typeof window.__GEMA_APP__!=='undefined'){
+      ReactDOM.createRoot($('root')).render(React.createElement(window.__GEMA_APP__));
       hide();
     }else showErr('Error al iniciar','La función App no se encontró');
   }catch(e){
