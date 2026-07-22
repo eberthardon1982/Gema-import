@@ -5717,11 +5717,11 @@ Por favor:
               <span className="text-slate-300">{cat.cilindrada_cc}cc {cat.combustible}</span>
               {cat.precio_hn_bajo&&<span className="text-emerald-400 ml-2">Mercado HN: ${cat.precio_hn_bajo.toLocaleString()}–${cat.precio_hn_alto.toLocaleString()}</span>}
               {!cat.precio_hn_bajo&&<span className="text-amber-400 ml-2">⚠️ Sin precio HN</span>}
-            </div>:<div className="mt-2 text-xs text-slate-600">Modelo no encontrado en catálogo — Claude igual lo analiza</div>;
+            </div>:<div className="mt-2 text-xs text-slate-600">Modelo no encontrado en catálogo — Claude igual lo analiza</div>
           })()}
         </Card>
       ))}
-    </div>
+    </div>}
 
     {/* Botón analizar */}
     {err&&<p className="text-red-400 text-sm bg-red-900/30 border border-red-700 rounded-xl px-4 py-3">{err}</p>}
@@ -5731,7 +5731,6 @@ Por favor:
     {loading&&<div className="text-center space-y-2">
       <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"/>
       <p className="text-slate-400 text-sm">Claude está evaluando daños, calculando rentabilidad<br/>y buscando banderas rojas...</p>
-    </div>}
     </div>}
 
     {/* RESULTADOS — solo en modo manual */}
@@ -6314,6 +6313,7 @@ function App(){
         return;
       }
     }
+    const [usrs,vehs,cls,cfg,cat,prc,gru,flt,ghl,peds,provs]=await Promise.all([
       dbGet("usuarios","?order=created_at.asc"),
       dbGet("vehiculos","?order=created_at.desc"),
       dbGet("clientes","?order=created_at.desc"),
