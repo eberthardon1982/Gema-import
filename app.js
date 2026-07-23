@@ -715,6 +715,60 @@ function VehiculosScreen({vehiculos,setVehiculos,clientes,users,session,config,c
   );
 }
 
+function FotosVehiculo({veh,onUpdate}){
+  const [subiendo,setSubiendo]=useState(false);
+  const [err,setErr]=useState("");
+  const fotos=veh.fotos||[];
+
+  async function subirFoto(file){
+    if(!file)return;
+    if(file.size>5*1024*1024){setErr("Máx 5MB por foto");return;}
+    setSubiendo(true);setErr("");
+    try{
+      const creds=JSON.parse(localStorage.getItem("iv3_supabase_creds")||"{}");
+      const ext=file.name.split(".").pop();
+      const path=`vehiculos/${veh.id}/${Date.now()}.${ext}`;
+      const r=await fetch(`${creds.url}/storage/v1/object/vehiculos-fotos/${path}`,{
+        method:"POST",
+        headers:{"Authorization":`Bearer ${creds.key}`,"apikey":creds.key,"Content-Type":file.type,"x-upsert":"true"},
+        body:file
+      });
+      if(!r.ok)throw new Error("Error al subir la foto. Verifica el bucket vehiculos-fotos en Supabase Storage.");
+      const url=`${creds.url}/storage/v1/object/public/vehiculos-fotos/${path}`;
+      const obj={...veh,fotos:[...fotos,url]};
+      await dbUpsert("vehiculos",[vehToDb(obj)]);
+      onUpdate(obj);
+    }catch(e){setErr(e.message);}
+    setSubiendo(false);
+  }
+
+  async function borrarFoto(url){
+    const obj={...veh,fotos:fotos.filter(f=>f!==url)};
+    try{
+      await dbUpsert("vehiculos",[vehToDb(obj)]);
+      onUpdate(obj);
+    }catch(e){setErr("Error al borrar: "+e.message);}
+  }
+
+  return <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📷 Fotos del Vehículo ({fotos.length})</p>
+    {fotos.length>0&&<div className="grid grid-cols-3 gap-2 mb-3">
+      {fotos.map((url,i)=>(
+        <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-white/10 group">
+          <img src={url} alt={`Foto ${i+1}`} className="w-full h-full object-cover" onError={e=>{e.target.style.display="none";}}/>
+          <button onClick={()=>borrarFoto(url)} className="absolute top-1 right-1 bg-red-600 text-white text-xs w-5 h-5 rounded-full opacity-90">✕</button>
+        </div>
+      ))}
+    </div>}
+    <label className={`block text-center text-xs font-bold py-2.5 rounded-xl border-2 border-dashed cursor-pointer transition-all ${subiendo?"border-blue-500 text-blue-300":"border-white/20 text-slate-400 hover:border-blue-500/50 hover:text-blue-400"}`}>
+      {subiendo?"⏳ Subiendo...":"📷 Agregar foto"}
+      <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={subiendo}
+        onChange={e=>subirFoto(e.target.files[0])}/>
+    </label>
+    {err&&<p className="text-red-400 text-xs mt-2 text-center">{err}</p>}
+  </div>;
+}
+
 function VehDetalleModal({veh,onClose,onUpdate,users,clientes,tc,session}){
   const [tab,setTab]=useState("info");
   const [nuevoEst,setNuevoEst]=useState(veh.estado);
@@ -806,10 +860,7 @@ function VehDetalleModal({veh,onClose,onUpdate,users,clientes,tc,session}){
             <Btn onClick={async()=>{
               const nueva=prompt("Nueva placa:");
               if(!nueva)return;
-              const obj={...veh,placa_hn:nueva.toUpperCase()};
-              await dbUpsert("vehiculos",[obj]);
-              setVehiculos(prev=>prev.map(v=>v.id===veh.id?obj:v));
-              setSelVeh(obj);
+              await onUpdate({placa_hn:nueva.toUpperCase()});
             }} small color="gray">Cambiar</Btn>
           </div>:
           <div className="flex gap-2">
@@ -817,10 +868,7 @@ function VehDetalleModal({veh,onClose,onUpdate,users,clientes,tc,session}){
               className="flex-1 bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
               onKeyDown={async e=>{
                 if(e.key==="Enter"&&e.target.value){
-                  const obj={...veh,placa_hn:e.target.value.toUpperCase()};
-                  await dbUpsert("vehiculos",[obj]);
-                  setVehiculos(prev=>prev.map(v=>v.id===veh.id?obj:v));
-                  setSelVeh(obj);
+                  await onUpdate({placa_hn:e.target.value.toUpperCase()});
                 }
               }}/>
             <span className="text-xs text-slate-500 self-center">Enter</span>
@@ -833,10 +881,24 @@ function VehDetalleModal({veh,onClose,onUpdate,users,clientes,tc,session}){
         </a>}
 
         {/* Sistema de Fotos */}
-        {canEdit&&<FotosVehiculo veh={veh} onUpdate={vehActualizado=>{
-          setVehiculos(prev=>prev.map(v=>v.id===vehActualizado.id?vehActualizado:v));
-          setSelVeh(vehActualizado);
-        }}/>}
+        {canEdit&&<FotosVehiculo veh={veh} onUpdate={vehActualizado=>onUpdate(vehActualizado)}/>}
+
+        {/* Precio de venta pedido — para catálogo público y marketing, independiente de la venta ya concretada */}
+        {canEdit&&<div className="bg-white/5 border border-white/10 rounded-xl p-3">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">💲 Precio de Venta Pedido (para catálogo y marketing)</label>
+          <div className="flex gap-2 items-center">
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">$</span>
+              <input type="number" defaultValue={veh.precio_venta_pedido||""} placeholder="Ej: 15000"
+                onBlur={async e=>{
+                  const v=e.target.value?parseFloat(e.target.value):null;
+                  if(v!==(veh.precio_venta_pedido||null)) await onUpdate({precio_venta_pedido:v});
+                }}
+                className="w-full bg-white/10 text-white border border-white/20 rounded-xl pl-7 pr-3 py-2 text-sm focus:outline-none focus:border-blue-400"/>
+            </div>
+          </div>
+          <p className="text-xs text-slate-600 mt-1">Este precio es el que se muestra en el catálogo público mientras el vehículo está disponible. No es el precio final de venta.</p>
+        </div>}
 
         <div className="bg-blue-900/30 border border-blue-700/40 rounded-xl p-3">
           <div className="grid grid-cols-3 gap-2 text-center text-xs">
@@ -926,11 +988,6 @@ function VehDetalleModal({veh,onClose,onUpdate,users,clientes,tc,session}){
           </div>
         </div>}
         {veh.notas&&<div className="bg-white/5 rounded-xl p-3 text-sm text-slate-300">📝 {veh.notas}</div>}
-
-        {/* Fotos del vehículo */}
-        {canEdit&&<FotosVehiculo veh={veh} onUpdate={vehActualizado=>{
-          setVehiculos(prev=>prev.map(v=>v.id===vehActualizado.id?vehActualizado:v));
-        }}/>}
 
         {/* Pagos parciales — solo si está vendido */}
         {veh.estado==="VENDIDO"&&veh.venta&&<PagosParciales veh={veh} config={{tc}} onUpdate={vehActualizado=>{
@@ -2277,11 +2334,11 @@ function ShowroomPublico({config:configProp}){
   },[]);
 
   const tipos=[...new Set(vehiculos.map(v=>v.tipo_vehiculo))].filter(Boolean);
-  const maxP=Math.max(...vehiculos.map(v=>v.venta?.precio_venta||0));
+  const maxP=Math.max(...vehiculos.map(v=>v.precio_venta_pedido||0));
 
   const filtrados=vehiculos.filter(v=>{
     if(filtroTipo!=="Todos"&&v.tipo_vehiculo!==filtroTipo)return false;
-    const p=v.venta?.precio_venta||0;
+    const p=v.precio_venta_pedido||0;
     if(filtroPrecio==="0-10000"&&p>10000)return false;
     if(filtroPrecio==="10000-20000"&&(p<10000||p>20000))return false;
     if(filtroPrecio==="20000+"&&p<20000)return false;
@@ -2354,7 +2411,7 @@ function ShowroomPublico({config:configProp}){
 
       <div className="space-y-4">
         {filtrados.map(v=>{
-          const precio=v.venta?.precio_venta||0;
+          const precio=v.precio_venta_pedido||0;
           const km=v.millaje?`${(v.millaje/1000).toFixed(0)}k mi`:"";
           return(
             <div key={v.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-blue-500/40 transition-all">
@@ -2416,9 +2473,9 @@ function ShowroomPublico({config:configProp}){
           </div>
           <button onClick={()=>setSelVeh(null)} className="text-slate-400 text-2xl">✕</button>
         </div>
-        {selVeh.venta?.precio_venta>0&&<div className="bg-emerald-900/40 border border-emerald-700 rounded-xl p-4 mb-4 text-center">
-          <p className="text-emerald-300 text-2xl font-black">{usd(selVeh.venta.precio_venta)}</p>
-          <p className="text-emerald-500">{lps(selVeh.venta.precio_venta,tc)}</p>
+        {selVeh.precio_venta_pedido>0&&<div className="bg-emerald-900/40 border border-emerald-700 rounded-xl p-4 mb-4 text-center">
+          <p className="text-emerald-300 text-2xl font-black">{usd(selVeh.precio_venta_pedido)}</p>
+          <p className="text-emerald-500">{lps(selVeh.precio_venta_pedido,tc)}</p>
         </div>}
         <div className="grid grid-cols-2 gap-3 mb-4">
           {[
@@ -2507,7 +2564,7 @@ function MarketingScreen({vehiculos,clientes,config,precios}){
       const wa=precios?.whatsapp||"tu número de WhatsApp";
 
       if(modo==="vehiculo"&&selVeh){
-        const precio=selVeh.venta?.precio_venta||0;
+        const precio=selVeh.precio_venta_pedido||0;
         const km=selVeh.millaje?`${selVeh.millaje.toLocaleString()} millas`:null;
         const vehInfo=`${selVeh.año} ${selVeh.marca} ${selVeh.modelo}${selVeh.color?" color "+selVeh.color:""}${km?" con "+km:""}${precio?" precio L."+Math.round(precio*tc).toLocaleString()+" (USD $"+precio.toLocaleString()+")":""}${selVeh.descripcion_venta?" — "+selVeh.descripcion_venta:""}`;
 
@@ -2659,9 +2716,9 @@ El contenido debe: ser 100% en español hondureño natural, aportar valor real (
                 <p className="text-white font-bold text-sm">{v.año} {v.marca} {v.modelo}</p>
                 <p className="text-slate-400 text-xs">{v.color||""} · {v.millaje?v.millaje.toLocaleString()+" mi":""}</p>
               </div>
-              {v.venta?.precio_venta&&<div className="text-right">
-                <p className="text-emerald-400 text-sm font-bold">{usd(v.venta.precio_venta)}</p>
-                <p className="text-slate-500 text-xs">L.{Math.round(v.venta.precio_venta*tc).toLocaleString()}</p>
+              {v.precio_venta_pedido&&<div className="text-right">
+                <p className="text-emerald-400 text-sm font-bold">{usd(v.precio_venta_pedido)}</p>
+                <p className="text-slate-500 text-xs">L.{Math.round(v.precio_venta_pedido*tc).toLocaleString()}</p>
               </div>}
             </div>
           </button>
