@@ -358,8 +358,14 @@ async function testConnection(url, key) {
 
 // Map vehicle to/from DB column names
 function vehToDb(v) {
-  return { ...v, agno: v.año||v.agno, dano: v.daño||v.dano,
+  const out = { ...v, agno: v.año||v.agno, dano: v.daño||v.dano,
     año:undefined, daño:undefined };
+  // Campos numéricos: convertir "" a null para evitar error de tipo en Postgres
+  ["millaje","comision_compra","costo_real_total"].forEach(k=>{
+    if(out[k]==="") out[k]=null;
+    else if(out[k]!=null) out[k]=parseFloat(out[k]);
+  });
+  return out;
 }
 function vehFromDb(v) {
   return { ...v, año: v.agno, daño: v.dano };
@@ -373,12 +379,12 @@ const Btn=({onClick,children,color="blue",disabled,small,full})=>{
   const c={blue:"bg-blue-600 hover:bg-blue-500 text-white",green:"bg-emerald-600 hover:bg-emerald-500 text-white",red:"bg-red-700 hover:bg-red-600 text-white",gray:"bg-white/10 hover:bg-white/20 text-slate-300",amber:"bg-amber-600 hover:bg-amber-500 text-white"};
   return <button onClick={onClick} disabled={disabled} className={`${full?"w-full":""} ${small?"px-3 py-1.5 text-xs":"px-4 py-2.5 text-sm"} rounded-xl font-bold transition-all ${disabled?"opacity-40 cursor-not-allowed":c[color]||c.blue}`}>{children}</button>;
 };
-const Inp=({label,value,onChange,type="text",placeholder="",prefix,suffix,req,note})=>(
+const Inp=({label,value,onChange,type="text",placeholder="",prefix,suffix,req,note,onKeyDown})=>(
   <div>
     {label&&<label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}{req&&<span className="text-red-400 ml-0.5">*</span>}</label>}
     <div className="relative">
       {prefix&&<span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{prefix}</span>}
-      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} onKeyDown={onKeyDown}
         className={`w-full bg-white/10 text-white border border-white/20 rounded-xl py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-slate-600 ${prefix?"pl-7":"pl-3"} ${suffix?"pr-10":"pr-3"}`}/>
       {suffix&&<span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">{suffix}</span>}
     </div>
@@ -490,10 +496,10 @@ function LoginScreen({users,onLogin,onReconfigure}){
   const [loading,setLoading]=useState(false);
 
   async function doLogin(){
-    if(!usuario||!pin){setErr("Selecciona un usuario e ingresa tu PIN");return;}
+    if(!usuario||!pin){setErr("Ingresa tu usuario y tu PIN");return;}
     setLoading(true);setErr("");
-    const ok=await onLogin(usuario,pin);
-    if(!ok){setErr("PIN incorrecto. Intenta de nuevo.");setPin("");}
+    const ok=await onLogin(usuario.trim(),pin);
+    if(!ok){setErr("Usuario o PIN incorrecto. Intenta de nuevo.");setPin("");}
     setLoading(false);
   }
 
@@ -507,9 +513,10 @@ function LoginScreen({users,onLogin,onReconfigure}){
         </div>
         <Card>
           <div className="space-y-4">
-            <Sel label="Usuario" value={usuario} onChange={setUsuario}
-              options={users.filter(u=>u.activo).map(u=>({v:u.usuario,l:`${u.nombre} (${ROLES[u.rol]||u.rol})`}))}/>
-            <Inp label="PIN" value={pin} onChange={setPin} type="password" placeholder="••••" req/>
+            <Inp label="Usuario" value={usuario} onChange={setUsuario} placeholder="tu.usuario" req
+              onKeyDown={e=>{if(e.key==="Enter")doLogin();}}/>
+            <Inp label="PIN" value={pin} onChange={setPin} type="password" placeholder="••••" req
+              onKeyDown={e=>{if(e.key==="Enter")doLogin();}}/>
             {err&&<p className="text-red-400 text-xs text-center bg-red-900/30 border border-red-800 rounded-lg py-2">{err}</p>}
             <Btn onClick={doLogin} disabled={loading||!usuario||!pin} full>
               {loading?"Verificando...":"Ingresar"}
@@ -1671,16 +1678,18 @@ function ProveedoresScreen({proveedores,setProveedores,session,config}){
     return matchQ&&matchT;
   });
 
+  const [saveErr,setSaveErr]=useState("");
   async function saveProv(data){
-    setSaving(true);
+    setSaving(true);setSaveErr("");
     const obj=editProv
       ?{...editProv,...data,updated_at:new Date().toISOString()}
       :{id:"prov_"+uid(),...data,creado_por:session.user.nombre,created_at:new Date().toISOString()};
     try{
       await dbUpsert("proveedores",[obj]);
       setProveedores(prev=>editProv?prev.map(p=>p.id===editProv.id?obj:p):[obj,...prev]);
-    }catch(e){console.error(e);}
-    setShowForm(false);setEditProv(null);setSaving(false);
+      setShowForm(false);setEditProv(null);
+    }catch(e){setSaveErr("Error al guardar: "+e.message);}
+    setSaving(false);
   }
 
   async function toggleFav(prov){
@@ -1868,7 +1877,8 @@ function ProveedoresScreen({proveedores,setProveedores,session,config}){
       prov={editProv}
       onClose={()=>{setShowForm(false);setEditProv(null);}}
       onSave={saveProv}
-      saving={saving}/>}
+      saving={saving}
+      saveErr={saveErr}/>}
   </div>;
 }
 
@@ -1899,7 +1909,7 @@ function ProveedorCard({prov,onClick,tipoInfo,tc}){
   </button>;
 }
 
-function ProveedorFormModal({prov,onClose,onSave,saving}){
+function ProveedorFormModal({prov,onClose,onSave,saving,saveErr}){
   const [f,setF]=useState({
     tipo:prov?.tipo||"grua_hn",
     nombre:prov?.nombre||"",
@@ -1942,8 +1952,11 @@ function ProveedorFormModal({prov,onClose,onSave,saving}){
       if(f.precio_bus)precios["Bus"]=parseFloat(f.precio_bus);
       data.precios_json=JSON.stringify(precios);
     }
-    if(f.precio_base)data.precio_base=parseFloat(f.precio_base);
-    if(f.honorarios)data.honorarios=parseFloat(f.honorarios);
+    // Limpiar campos temporales que no existen como columnas en la tabla
+    delete data.precio_turismo;delete data.precio_camioneta;delete data.precio_pickup;
+    delete data.precio_camion;delete data.precio_bus;
+    data.precio_base=f.precio_base?parseFloat(f.precio_base):null;
+    data.honorarios=f.honorarios?parseFloat(f.honorarios):null;
     onSave(data);
   }
 
@@ -2041,6 +2054,7 @@ function ProveedorFormModal({prov,onClose,onSave,saving}){
           className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none"/>
       </div>
 
+      {saveErr&&<p className="text-red-400 text-xs text-center bg-red-900/30 border border-red-800 rounded-lg py-2">{saveErr}</p>}
       <div className="flex gap-3 mt-4">
         <Btn onClick={onClose} color="gray" full>Cancelar</Btn>
         <Btn onClick={guardar} disabled={saving||!f.nombre} full>{saving?"Guardando...":"Guardar"}</Btn>
@@ -2061,11 +2075,15 @@ function ClientesScreen({clientes,setClientes,vehiculos,session,config}){
     (c.nombre+"|"+(c.telefono||"")+"|"+(c.ciudad||"")).toLowerCase().includes(q.toLowerCase())
   );
 
+  const [saveErrCli,setSaveErrCli]=useState("");
   async function saveCli(data){
+    setSaveErrCli("");
     const obj=editCli?{...editCli,...data}:{id:"cli_"+uid(),...data,created_at:new Date().toISOString()};
-    await dbUpsert("clientes",[obj]);
-    setClientes(prev=>editCli?prev.map(c=>c.id===editCli.id?obj:c):[obj,...prev]);
-    setShowForm(false);setEditCli(null);
+    try{
+      await dbUpsert("clientes",[obj]);
+      setClientes(prev=>editCli?prev.map(c=>c.id===editCli.id?obj:c):[obj,...prev]);
+      setShowForm(false);setEditCli(null);
+    }catch(e){setSaveErrCli("Error al guardar: "+e.message);}
   }
 
   // Vehículos comprados por este cliente
@@ -2180,11 +2198,11 @@ function ClientesScreen({clientes,setClientes,vehiculos,session,config}){
       </div>
     </div>}
 
-    {showForm&&<CliFormModal cli={editCli} onClose={()=>{setShowForm(false);setEditCli(null);}} onSave={saveCli}/>}
+    {showForm&&<CliFormModal cli={editCli} onClose={()=>{setShowForm(false);setEditCli(null);}} onSave={saveCli} saveErr={saveErrCli}/>}
   </div>;
 }
 
-function CliFormModal({cli,onClose,onSave}){
+function CliFormModal({cli,onClose,onSave,saveErr}){
   const [f,setF]=useState({
     nombre:cli?.nombre||"",telefono:cli?.telefono||"",
     email:cli?.email||"",tipo:cli?.tipo||"Particular",
@@ -2211,6 +2229,7 @@ function CliFormModal({cli,onClose,onSave}){
         <textarea value={f.notas} onChange={e=>s("notas",e.target.value)} rows={2} placeholder="Referencias, comentarios..."
           className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none"/>
       </div>
+      {saveErr&&<p className="text-red-400 text-xs text-center bg-red-900/30 border border-red-800 rounded-lg py-2">{saveErr}</p>}
       <div className="flex gap-3 mt-4">
         <Btn onClick={onClose} color="gray" full>Cancelar</Btn>
         <Btn onClick={()=>{if(!f.nombre)return;onSave(f);}} full>Guardar</Btn>
@@ -2759,11 +2778,22 @@ function PedidosScreen({clientes,vehiculos,session,config,pedidos,setPedidos}){
     return p.estado===filtroEst;
   }).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
 
+  const [saveErrPed,setSaveErrPed]=useState("");
   async function savePed(data){
-    const obj={id:"ped_"+uid(),...data,estado:"PENDIENTE",created_at:new Date().toISOString()};
-    await dbUpsert("pedidos",[obj]);
-    setPedidos(prev=>[obj,...prev]);
-    setShowForm(false);
+    setSaveErrPed("");
+    if(!data.cliente_id){setSaveErrPed("Selecciona un cliente antes de guardar.");return;}
+    const clean={...data,
+      año_min:data.año_min?parseInt(data.año_min):null,
+      año_max:data.año_max?parseInt(data.año_max):null,
+      precio_max_usd:data.precio_max_usd?parseFloat(data.precio_max_usd):null,
+      precio_venta_max:data.precio_venta_max?parseFloat(data.precio_venta_max):null,
+    };
+    const obj={id:"ped_"+uid(),...clean,estado:"PENDIENTE",created_at:new Date().toISOString()};
+    try{
+      await dbUpsert("pedidos",[obj]);
+      setPedidos(prev=>[obj,...prev]);
+      setShowForm(false);
+    }catch(e){setSaveErrPed("Error al guardar: "+e.message);}
   }
 
   async function updEstado(ped,nuevoEstado){
@@ -2995,11 +3025,11 @@ Por favor:
       </div>
     </div>}
 
-    {showForm&&<PedidoFormModal clientes={clientes} onClose={()=>setShowForm(false)} onSave={savePed}/>}
+    {showForm&&<PedidoFormModal clientes={clientes} onClose={()=>setShowForm(false)} onSave={savePed} saveErr={saveErrPed}/>}
   </div>;
 }
 
-function PedidoFormModal({clientes,onClose,onSave}){
+function PedidoFormModal({clientes,onClose,onSave,saveErr}){
   const [f,setF]=useState({
     cliente_id:"",tipo_vehiculo:"",marca:"",modelo:"",
     año_min:"",año_max:"",precio_max_usd:"",precio_venta_max:"",
@@ -3074,9 +3104,11 @@ function PedidoFormModal({clientes,onClose,onSave}){
           className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none"/>
       </div>
 
+      {saveErr&&<p className="text-red-400 text-xs text-center bg-red-900/30 border border-red-800 rounded-lg py-2">{saveErr}</p>}
+      {!f.cliente_id&&<p className="text-amber-400 text-xs text-center">⚠️ Selecciona un cliente para poder guardar</p>}
       <div className="flex gap-3 mt-4">
         <Btn onClick={onClose} color="gray" full>Cancelar</Btn>
-        <Btn onClick={()=>onSave(f)} full>Registrar Pedido</Btn>
+        <Btn onClick={()=>onSave(f)} disabled={!f.cliente_id} full>Registrar Pedido</Btn>
       </div>
     </div>
   </Modal>;

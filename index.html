@@ -15,8 +15,11 @@ html,body{margin:0;padding:0;background:#0f172a;overflow-x:hidden;-webkit-text-s
 #root{min-height:100vh}
 input,select,textarea{font-size:16px!important}
 select{-webkit-appearance:none;appearance:none}
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:6px}
+::-webkit-scrollbar-thumb{background:#3b82f6;border-radius:6px;border:1px solid rgba(255,255,255,0.1)}
+::-webkit-scrollbar-thumb:hover{background:#60a5fa}
+*{scrollbar-width:thin;scrollbar-color:#3b82f6 rgba(255,255,255,0.03)}
 button{-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .safe-bottom{padding-bottom:env(safe-area-inset-bottom,0px)}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -95,6 +98,7 @@ if(cached){
 ld('https://unpkg.com/react@18/umd/react.production.min.js',()=>{
   ld('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',()=>{
     ld('https://cdn.tailwindcss.com',()=>{
+      ld('https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',()=>{
       
       if(cached){
         p('Iniciando...','',95);
@@ -161,6 +165,7 @@ ld('https://unpkg.com/react@18/umd/react.production.min.js',()=>{
         })
         .catch(()=>showErr('Error de red','No se pudo descargar app.js'));
       
+      });
     });
   });
 });
