@@ -2657,6 +2657,141 @@ function MarketingScreen({vehiculos,clientes,config,precios}){
 
   const dispVehs=vehiculos.filter(v=>v.estado==="DISPONIBLE");
   const platInfo=PLATAFORMAS_MKT.find(p=>p.id===plat)||PLATAFORMAS_MKT[0];
+  const motorIA=precios?.motor_ia||"local"; // "local" (gratis) | "claude" (Opción 2)
+
+  // ══════════════════════════════════════════════════════════════
+  // MOTOR LOCAL DE CONTENIDO — plantillas profesionales, sin API
+  // ══════════════════════════════════════════════════════════════
+  function generarContenidoLocal(){
+    const empresa=precios?.nombre_empresa||"nuestra importadora";
+    const wa=precios?.whatsapp||"escribinos";
+    let out="";
+
+    if(modo==="vehiculo"&&selVeh){
+      const precio=selVeh.precio_venta_pedido||0;
+      const precioL=precio?`L.${Math.round(precio*tc).toLocaleString()}`:"Precio a consultar";
+      const precioU=precio?`$${precio.toLocaleString()}`:"";
+      const km=selVeh.millaje?`${selVeh.millaje.toLocaleString()} millas`:"";
+      const nombre=`${selVeh.año||""} ${selVeh.marca} ${selVeh.modelo}`.trim();
+      const color=selVeh.color?` color ${selVeh.color}`:"";
+      const rasgos=[km,color?.trim(),selVeh.transmision].filter(Boolean).join(" · ");
+
+      const textos={
+        whatsapp:`🚗 *${nombre}*${color}
+
+${rasgos?`📋 ${rasgos}\n`:""}💰 *${precioL}*${precioU?` (${precioU})`:""}
+
+Vehículo importado directamente, listo para trámites de placa. Financiamiento disponible según el caso.
+
+📲 Escribinos al ${wa} para más fotos y detalles.`,
+
+        telegram:`**${nombre}**${color}
+
+${rasgos?`_${rasgos}_\n`:""}💰 **${precioL}**${precioU?` (${precioU})`:""}
+
+Importado y listo para vos. Escribinos por WhatsApp: ${wa}`,
+
+        facebook:`🚙 ¡Nueva llegada! ${nombre}${color}
+
+${rasgos?`✅ ${rasgos}\n`:""}💵 Precio: ${precioL}${precioU?` / ${precioU}`:""}
+
+Vehículo importado con toda la documentación en regla. Consultá por financiamiento.
+
+👉 Escribinos al ${wa} y coordinamos una cita para que lo veas en persona.
+
+#ImportacionHonduras #VehiculosUsados #Honduras`,
+
+        tiktok:`GANCHO (cámara, primeros 3 seg): "¿Buscás un ${selVeh.marca} sin pagar precio de agencia?"
+
+TEXTO EN PANTALLA: "${nombre} — Importado 🇺🇸➡️🇭🇳"
+
+DESARROLLO: Mostrar el vehículo por fuera, luego interior, luego motor. Mencionar en cámara: "${rasgos||"Excelente estado"}, precio ${precioL}."
+
+CIERRE: "Escribinos al ${wa} antes de que se venda" + mostrar número en pantalla.`,
+
+        youtube:`Título sugerido: "${nombre} Importado — ${precioL} | Revisión Completa"
+
+Descripción: Te mostramos a detalle este ${nombre}${color}, importado directamente para ahorrarte dinero frente al precio de agencia. ${rasgos?rasgos+". ":""}Precio: ${precioL}${precioU?` (${precioU})`:""}. Contactanos al ${wa} para agendar una cita.
+
+Tags sugeridos: importacion honduras, ${selVeh.marca.toLowerCase()}, ${selVeh.modelo.toLowerCase()}, carros usados honduras, subasta usa`,
+
+        twitter:`🧵 1/ ${nombre}${color} recién importado 🇭🇳
+
+2/ ${rasgos||"Excelente estado general"}. Documentación completa, listo para placa.
+
+3/ 💰 ${precioL}${precioU?` (${precioU})`:""}
+
+4/ Interesado? Escribinos al ${wa} 📲 #Honduras #Vehiculos`,
+      };
+      out=textos[plat]||textos.whatsapp;
+
+    } else if(modo==="educativo"){
+      const tema=temaCustom.trim()||temaEdu;
+      const textosEdu={
+        whatsapp:`💡 *${tema}*
+
+En ${empresa} sabemos que importar un vehículo puede parecer complicado. Por eso te explicamos los puntos clave para que tomés la mejor decisión.
+
+¿Tenés dudas sobre tu caso específico? Escribinos al ${wa} y te asesoramos sin compromiso.`,
+
+        telegram:`💡 **${tema}**
+
+Un tema importante para quienes están pensando importar un vehículo a Honduras. Si querés que te asesoremos con tu caso particular, escribinos: ${wa}`,
+
+        facebook:`📌 ${tema}
+
+Este es uno de los temas que más nos preguntan en ${empresa}. La importación de vehículos tiene sus particularidades, y conocerlas de antemano te ahorra dinero y dolores de cabeza.
+
+¿Tenés preguntas sobre tu situación? Escribinos al ${wa}, con gusto te asesoramos.
+
+#ImportacionVehiculos #Honduras #AsesoriaGratis`,
+
+        tiktok:`GANCHO: "${tema}" (leer directo a cámara, tono de pregunta genuina)
+
+TEXTO EN PANTALLA: título del tema resumido en 4-5 palabras
+
+DESARROLLO: Explicar el punto principal con 2-3 datos concretos. Usar ejemplos de precios reales si aplica.
+
+CIERRE: "Si te interesa importar, escribinos al ${wa}" + mostrar número en pantalla.`,
+
+        youtube:`Título sugerido: "${tema}"
+
+Descripción: En este video te explicamos todo sobre este tema, con datos reales del proceso de importación a Honduras. En ${empresa} llevamos experiencia ayudando a hondureños a importar su vehículo ideal sin sorpresas. Contactanos: ${wa}
+
+Tags sugeridos: importacion honduras, ${empresa.toLowerCase().replace(/\s+/g,"")}, carros usados, subasta usa, tramites aduana`,
+
+        twitter:`🧵 1/ ${tema}
+
+2/ Este es un tema clave para cualquiera pensando en importar un vehículo a Honduras.
+
+3/ En ${empresa} te asesoramos en cada paso del proceso.
+
+4/ ¿Preguntas? ${wa} 📲 #Honduras #Importacion`,
+
+        educativo:`📅 PLAN DE CONTENIDO — 1 semana — Tema base: "${tema}"
+
+Día 1 (Lunes) — WhatsApp/Estado: Presentá el tema con un dato sorprendente o una pregunta directa.
+Día 2 (Martes) — Facebook: Desarrollá el tema completo con 3-4 puntos clave y una imagen relacionada.
+Día 3 (Miércoles) — TikTok/Reel: Versión corta y visual del mismo tema, con gancho fuerte en los primeros 3 segundos.
+Día 4 (Jueves) — Telegram: Resumen del tema en formato de lista rápida, fácil de leer.
+Día 5 (Viernes) — Vehículo disponible: Aprovechá para mostrar un vehículo que se relacione con el tema (ej. si el tema es sobre pickups, mostrá una pickup disponible).
+Día 6 (Sábado) — X/Twitter: Hilo corto retomando el tema con un ángulo distinto o una pregunta a la audiencia.
+Día 7 (Domingo) — Descanso o repost del contenido de mayor alcance de la semana.
+
+💡 Sugerencia: este mismo tema se puede repetir en 2-3 meses con un ángulo nuevo (ej. un caso real de un cliente, o una actualización de precios/trámites).`,
+      };
+      out=textosEdu[plat]||textosEdu.whatsapp;
+    }
+
+    setContenido(out);
+  }
+
+  // Decide qué motor usar: local (gratis) o Claude API (Opción 2)
+  function generarTodo(){
+    if(motorIA==="claude") return generarContenido();
+    setLoading(true);
+    setTimeout(()=>{ generarContenidoLocal(); setLoading(false); },300); // pequeña espera para feedback visual
+  }
 
   async function generarContenido(){
     setLoading(true);setContenido(null);
@@ -2719,7 +2854,7 @@ ${instrEdu[plat]||instrEdu.facebook}
 El contenido debe: ser 100% en español hondureño natural, aportar valor real (no solo vender), posicionar a la empresa como expertos, y generar confianza antes de pedir una acción de compra.`;
       }
 
-      const r=await fetch("https://api.anthropic.com/v1/messages",{
+      const r=await fetch("/.netlify/functions/claude-proxy",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -2854,10 +2989,16 @@ El contenido debe: ser 100% en español hondureño natural, aportar valor real (
       </div>
     </div>
 
-    <Btn onClick={generarContenido}
+    <div className="flex items-center justify-between text-xs mb-1">
+      <span className="text-slate-500">Motor de contenido:</span>
+      <span className={`font-bold px-2 py-0.5 rounded-full ${motorIA==="claude"?"bg-purple-900/40 text-purple-300":"bg-emerald-900/40 text-emerald-300"}`}>
+        {motorIA==="claude"?"🤖 Claude API":"⚙️ Motor Local (gratis)"}
+      </span>
+    </div>
+    <Btn onClick={generarTodo}
       disabled={loading||(modo==="vehiculo"&&!selVeh)}
       full color="blue">
-      {loading?"✍️ Claude está creando el contenido...":"✨ Generar Contenido con Claude"}
+      {loading?(motorIA==="claude"?"✍️ Claude está creando el contenido...":"✍️ Generando..."):"✨ Generar Contenido"}
     </Btn>
 
     {loading&&<div className="text-center py-4">
@@ -2889,7 +3030,7 @@ El contenido debe: ser 100% en español hondureño natural, aportar valor real (
 
       {/* Regenerar variación */}
       <div className="grid grid-cols-2 gap-2">
-        <Btn onClick={generarContenido} small color="gray" full>🔄 Otra variación</Btn>
+        <Btn onClick={generarTodo} small color="gray" full>🔄 Otra variación</Btn>
         <Btn onClick={()=>{
           const otros=PLATAFORMAS_MKT.filter(p=>p.id!==plat);
           const sig=otros[Math.floor(Math.random()*otros.length)];
@@ -3000,7 +3141,7 @@ Por favor:
 3. Indica cuáles son las mejores opciones y por qué
 4. Si no encontrás resultados exactos, muestra las opciones más cercanas disponibles`;
 
-      const r=await fetch("https://api.anthropic.com/v1/messages",{
+      const r=await fetch("/.netlify/functions/claude-proxy",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -3445,7 +3586,7 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
   const copartFee=precios?.buyer_fee_copart||COPART_FEE.map(([max,fee])=>({max,fee}));
   const iaaiFee=precios?.buyer_fee_iaai||IAAI_FEE.map(([max,fee])=>({max,fee}));
 
-  const TABS=[["general","⚙️ General"],["fletes","🚢 Fletes"],["gruas","🚛 Grúas USA"],["grua_hn","🏘️ Grúa HN"],["fees","💳 Buyer Fees"],["usuarios","👤 Usuarios"]];
+  const TABS=[["general","⚙️ General"],["ia","🤖 Motor de IA"],["fletes","🚢 Fletes"],["gruas","🚛 Grúas USA"],["grua_hn","🏘️ Grúa HN"],["fees","💳 Buyer Fees"],["usuarios","👤 Usuarios"]];
 
   return <div className="p-4 pb-24">
     <h2 className="text-xl font-black text-white mb-4">⚙️ Administración</h2>
@@ -3618,6 +3759,48 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
           <p className="text-slate-400">CARFAX requiere cuenta de dealer registrado en USA. Si en algún momento obtienes esa cuenta, la integración está lista para conectarse.</p>
           <p className="text-slate-400">Incluye además: historial de servicios, número de dueños, uso como taxi/rental/flota.</p>
         </div>
+      </Card>
+    </div>}
+
+    {/* ── TAB: MOTOR DE IA ── */}
+    {tab==="ia"&&<div className="space-y-4">
+      <Card>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🤖 Motor de Análisis e IA</p>
+        <p className="text-xs text-slate-500 mb-3">Elegí cómo funcionan Análisis IA, Marketing y la búsqueda de Corea.</p>
+
+        <div className="space-y-2">
+          <button onClick={()=>savePrecio("motor_ia","local","Motor de análisis IA")}
+            className={`w-full text-left p-3 rounded-xl border-2 transition-all ${(precios?.motor_ia||"local")==="local"?"border-emerald-500 bg-emerald-900/20":"border-white/10 bg-white/5"}`}>
+            <div className="flex items-center justify-between">
+              <p className="text-white font-bold text-sm">⚙️ Motor Local</p>
+              {(precios?.motor_ia||"local")==="local"&&<span className="text-emerald-400 text-xs font-bold">✓ ACTIVO</span>}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">Gratis, siempre disponible. Usa el catálogo de vehículos y los precios de partes ya cargados para calcular puja máxima y reparación estimada. No necesita internet ni configuración.</p>
+            <p className="text-xs text-amber-500 mt-1">⚠️ No puede buscar por número de lote ni buscar en Autowini/Encar (necesitan internet en tiempo real).</p>
+          </button>
+
+          <button onClick={()=>savePrecio("motor_ia","claude","Motor de análisis IA")}
+            className={`w-full text-left p-3 rounded-xl border-2 transition-all ${precios?.motor_ia==="claude"?"border-purple-500 bg-purple-900/20":"border-white/10 bg-white/5"}`}>
+            <div className="flex items-center justify-between">
+              <p className="text-white font-bold text-sm">🤖 Claude API</p>
+              {precios?.motor_ia==="claude"&&<span className="text-purple-400 text-xs font-bold">✓ ACTIVO</span>}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">Análisis más completo, busca por número de lote, y contenido de marketing más variado. Tiene un costo por uso (aproximadamente centavos por análisis) y necesita configuración adicional en Netlify.</p>
+          </button>
+        </div>
+
+        {precios?.motor_ia==="claude"&&<div className="mt-4 bg-purple-900/20 border border-purple-700/40 rounded-xl p-3">
+          <p className="text-xs font-bold text-purple-300 mb-2">📋 Pasos para activar Claude API de verdad</p>
+          <ol className="text-xs text-slate-400 space-y-1.5 list-decimal list-inside">
+            <li>Creá tu cuenta en <span className="text-blue-400">console.anthropic.com</span> y generá una clave de API</li>
+            <li>En Netlify, entrá a tu sitio → <b>Site configuration → Environment variables</b></li>
+            <li>Agregá una variable llamada exactamente <code className="bg-white/10 px-1 rounded">ANTHROPIC_API_KEY</code> con tu clave como valor</li>
+            <li>Subí el archivo <code className="bg-white/10 px-1 rounded">netlify/functions/claude-proxy.js</code> a tu repositorio de GitHub (te lo entregamos junto con esta actualización)</li>
+            <li>Netlify va a volver a publicar el sitio automáticamente — esperá 1-2 minutos</li>
+            <li>Volvé a esta pantalla y probá Análisis IA — ya debería funcionar de verdad</li>
+          </ol>
+          <p className="text-xs text-slate-600 mt-2">🔒 Por seguridad, la clave de API nunca se guarda acá ni en Supabase — vive únicamente en la configuración de Netlify, invisible desde el navegador.</p>
+        </div>}
       </Card>
     </div>}
 
@@ -4190,8 +4373,9 @@ function DocumentosKoreaChecklist(){
   </div>;
 }
 
-function KoreaImportScreen({config,vehiculos,setVehiculos,clientes}){
+function KoreaImportScreen({config,vehiculos,setVehiculos,clientes,precios}){
   const tc=config?.tc||25.20;
+  const motorIA=precios?.motor_ia||"local"; // "local" (gratis) | "claude" (Opción 2)
   const [tab,setTab]=useState("calculadora"); // calculadora | buscar | registrar
   const [selVeh,setSelVeh]=useState(null);
   const [form,setForm]=useState({
@@ -4311,7 +4495,7 @@ Responde SOLO en formato JSON válido con esta estructura exacta:
   "consejo_negociacion": "qué precio intentar negociar y cómo"
 }`;
 
-      const r=await fetch("https://api.anthropic.com/v1/messages",{
+      const r=await fetch("/.netlify/functions/claude-proxy",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -4398,7 +4582,7 @@ Por favor:
 
 Contexto geográfico: Vehículos en Seúl/Incheon tienen transporte interno $0-200. En Busan (sur): $300-600 adicionales. En otras regiones: $200-400.`;
 
-      const r=await fetch("https://api.anthropic.com/v1/messages",{
+      const r=await fetch("/.netlify/functions/claude-proxy",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -4452,7 +4636,7 @@ Contexto geográfico: Vehículos en Seúl/Incheon tienen transporte interno $0-2
     if(!busqQ.trim())return;
     setBusqLoading(true);setBusqResult("");
     try{
-      const r=await fetch("https://api.anthropic.com/v1/messages",{
+      const r=await fetch("/.netlify/functions/claude-proxy",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -4726,9 +4910,14 @@ Contexto: El comprador es de Honduras y necesita importar el vehículo. Prioriz�
         <Inp label="¿En cuánto esperás venderlo en HN? ($)" value={busqFiltros.precioVentaHN} onChange={v=>setBusqFiltros(f=>({...f,precioVentaHN:v}))} type="number" prefix="$" placeholder="Ej: 45000 para un County 2018"/>
       </Card>
 
-      <Btn onClick={buscarEnAutowiniAvanzado} disabled={busqLoading} full color="blue">
+      {motorIA!=="claude"?
+        <div className="bg-amber-900/20 border border-amber-700/40 rounded-2xl p-4 text-center">
+          <p className="text-amber-300 font-bold text-sm mb-1">🔒 Esta función necesita la Opción 2 (Claude API)</p>
+          <p className="text-slate-400 text-xs">Buscar vehículos en Autowini y Encar requiere buscar en internet en tiempo real, algo que el Motor Local no puede hacer. Activá la Claude API en Admin para usar esta función. Mientras tanto, podés usar la <b>Calculadora</b> — funciona 100% gratis con los datos que ya ingreses manualmente.</p>
+        </div>
+      :<Btn onClick={buscarEnAutowiniAvanzado} disabled={busqLoading} full color="blue">
         {busqLoading?"🔍 Claude está buscando y analizando...":"🤖 Buscar y Analizar Rentabilidad"}
-      </Btn>
+      </Btn>}
 
       {busqLoading&&<div className="text-center py-6 space-y-2">
         <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"/>
@@ -4979,16 +5168,116 @@ Contexto: El comprador es de Honduras y necesita importar el vehículo. Prioriz�
   </div>;
 }
 
-function AnalisisIAScreen({catalogo,gruas,fletes,precios,gruaLocalHN,config}){
+// ══════════════════════════════════════════════════════════════
+// MOTOR LOCAL DE ANÁLISIS — Opción 1 (sin API, gratis, siempre disponible)
+// Usa el catálogo de referencia y los precios de partes ya cargados
+// para dar una recomendación de puja sin depender de Claude ni internet
+// ══════════════════════════════════════════════════════════════
+const CATEGORIAS_DANO=[
+  {v:"",l:"Sin daño / no especificado"},
+  {v:"FRONTAL",l:"🚗 Frontal (delantero)"},
+  {v:"TRASERO",l:"🚙 Trasero"},
+  {v:"LATERAL",l:"↔️ Lateral (un costado)"},
+  {v:"VIDRIOS",l:"🪟 Vidrios/cristales"},
+  {v:"SUSPENSION",l:"⚙️ Suspensión/mecánico"},
+  {v:"ELECTRICO",l:"⚡ Eléctrico"},
+  {v:"AGUA",l:"💧 Inundación/agua (flood)"},
+  {v:"QUEMADO",l:"🔥 Quemado/incendio"},
+  {v:"TOTAL",l:"⛔ Pérdida total / no arranca"},
+];
+
+function estimarReparacion(marca,modelo,año,categoriaDano,partesPorModelo){
+  if(!categoriaDano||!marca||!modelo) return {piezas:[],totalUsd:0,confiable:false};
+  const añoNum=parseInt(año)||0;
+  const candidatas=(partesPorModelo||[]).filter(p=>
+    p.marca?.toLowerCase()===marca.toLowerCase()&&
+    p.modelo?.toLowerCase()===modelo.toLowerCase()&&
+    p.categoria===categoriaDano&&
+    (!añoNum||(!p.año_inicio||añoNum>=p.año_inicio)&&(!p.año_fin||añoNum<=p.año_fin))
+  );
+  if(!candidatas.length){
+    // Sin match exacto de marca/modelo — usar un estimado genérico por categoría
+    const genericos={
+      FRONTAL:1400,TRASERO:1100,LATERAL:1300,VIDRIOS:350,
+      SUSPENSION:900,ELECTRICO:600,AGUA:3500,QUEMADO:5000,TOTAL:6000
+    };
+    return {piezas:[],totalUsd:genericos[categoriaDano]||1000,confiable:false};
+  }
+  const piezas=candidatas.map(p=>({
+    nombre:p.nombre_parte,
+    precio:(p.precio_replica||p.precio_yonke||p.precio_oem_nuevo||0)+(p.labor_usd||0),
+    disponibilidad:p.disponibilidad||"No especificado"
+  }));
+  const totalUsd=piezas.reduce((s,p)=>s+p.precio,0);
+  return {piezas,totalUsd,confiable:true};
+}
+
+function analizarVehiculoLocal(veh,catalogo,partesPorModelo,precios,tc){
+  const cat=(catalogo||[]).find(c=>
+    c.marca?.toLowerCase()===veh.marca?.toLowerCase()&&
+    c.modelo?.toLowerCase()===veh.modelo?.toLowerCase()
+  );
+  const precioHnBajo=cat?.precio_hn_bajo||0;
+  const precioHnAlto=cat?.precio_hn_alto||0;
+  const precioVentaEstimado=precioHnBajo&&precioHnAlto?(precioHnBajo+precioHnAlto)/2:0;
+
+  const rep=estimarReparacion(veh.marca,veh.modelo,veh.año,veh.categoria_dano,partesPorModelo);
+
+  if(!precioVentaEstimado){
+    return {sinCatalogo:true,marca:veh.marca,modelo:veh.modelo,mensaje:"Este modelo no está en el catálogo de referencia. Agregalo en Admin o usa Puja Máxima con un precio de venta manual."};
+  }
+
+  // Reutiliza la misma lógica de costos que ya usa Puja Máxima
+  // DAI: 0% si aplica CAFTA (fabricado en USA), si no un estimado típico
+  // ISC: estimado simplificado por cilindrada (el cálculo fiscal exacto se hace en Admin→Precios)
+  const daiRate=cat?.cafta_aplica?0:0.15;
+  const cc=cat?.cilindrada_cc||2000;
+  const iscRate=cc>3000?0.30:cc>2000?0.20:cc>1500?0.10:0.05;
+  const gruaEst=350; // estimado genérico si no se eligió yarda específica
+  const fleteEst=precios?.flete_promedio||1200;
+  const r=calcPujaMax({
+    precioMercado:precioVentaEstimado,
+    margen:0.20,
+    grua:gruaEst,
+    flete:fleteEst,
+    dai_rate:daiRate,
+    isc_rate:iscRate,
+    plataforma:veh.plataforma||"Copart",
+    precios:precios,
+    gruaHN:rep.totalUsd, // la reparación se suma como costo local, sin impuesto de importación
+  });
+
+  if(!r){
+    return {sinCatalogo:true,marca:veh.marca,modelo:veh.modelo,mensaje:"El precio de referencia de este modelo es muy bajo para calcular. Revisá el catálogo o usá Puja Máxima manualmente."};
+  }
+
+  return {
+    sinCatalogo:false,
+    marca:veh.marca,modelo:veh.modelo,año:veh.año,
+    precioVentaEstimado,
+    categoria_dano:veh.categoria_dano,
+    reparacion:rep,
+    pujaMaxima:r.bid,
+    costoTotal:r.total,
+    gananciaEstimada:r.ganancia,
+    margenPct:r.margen,
+    piezasEstimadas:rep.piezas,
+    confiablePartes:rep.confiable,
+  };
+}
+
+function AnalisisIAScreen({catalogo,gruas,fletes,precios,gruaLocalHN,config,partesPorModelo}){
   const tc=config?.tc||25.20;
   const [modo,setModo]=useState("lote"); // "lote" | "manual"
   const [vehiculosIA,setVehiculosIA]=useState([
-    {id:1,vin:"",marca:"",modelo:"",año:"",plataforma:"Copart",precio:"",dano:"",descripcion:"",foto:null}
+    {id:1,vin:"",marca:"",modelo:"",año:"",plataforma:"Copart",precio:"",dano:"",categoria_dano:"",descripcion:"",foto:null}
   ]);
   const [destCiudad,setDestCiudad]=useState("Danlí / El Paraíso");
   const [analisis,setAnalisis]=useState(null);
   const [loading,setLoading]=useState(false);
   const [err,setErr]=useState("");
+  const motorIA=precios?.motor_ia||"local"; // "local" (gratis) | "claude" (de pago, Opción 2)
+  const [resultadosLocal,setResultadosLocal]=useState(null);
 
   // ── MODO POR NÚMERO DE LOTE ────────────────────────────────
   const [lotes,setLotes]=useState([{id:1,numero:"",plataforma:"Copart"}]);
@@ -5022,7 +5311,7 @@ Al final compará los lotes entre sí y recomendá cuál es la mejor opción si 
 
 Ciudad destino en Honduras: ${destCiudad}`;
 
-      const r=await fetch("https://api.anthropic.com/v1/messages",{
+      const r=await fetch("/.netlify/functions/claude-proxy",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -5045,7 +5334,7 @@ Ciudad destino en Honduras: ${destCiudad}`;
   const fuenteCiudades=(gruaLocalHN?.length>0)?gruaLocalHN:CIUDADES_HN_BACKUP;
 
   function addVeh(){
-    setVehiculosIA(p=>[...p,{id:Date.now(),vin:"",marca:"",modelo:"",año:"",plataforma:"Copart",precio:"",dano:"",descripcion:"",foto:null}]);
+    setVehiculosIA(p=>[...p,{id:Date.now(),vin:"",marca:"",modelo:"",año:"",plataforma:"Copart",precio:"",dano:"",categoria_dano:"",descripcion:"",foto:null}]);
   }
   function removeVeh(id){setVehiculosIA(p=>p.filter(v=>v.id!==id));}
   function updVeh(id,k,v){setVehiculosIA(p=>p.map(x=>x.id===id?{...x,[k]:v}:x));}
@@ -5166,6 +5455,30 @@ Ciudad destino en Honduras: ${destCiudad}`;
       precioMercadoAlto:cat?.precio_hn_alto||0,
       demanda:cat?.demanda_hn||"—",
       repuestos:cat?.repuestos_hn||"—"};
+  }
+
+  // ── MOTOR LOCAL: analiza todos los vehículos manuales sin usar Claude ──
+  function analizarTodosLocal(){
+    const validos=vehiculosIA.filter(v=>v.marca&&v.modelo&&v.precio);
+    if(validos.length===0){setErr("Agrega al menos un vehículo con marca, modelo y precio");return;}
+    setErr("");
+    const resultados=validos.map(v=>analizarVehiculoLocal(v,catalogo,partesPorModelo,precios,tc));
+    // Ordenar de mejor a peor negocio (mayor ganancia estimada primero)
+    resultados.sort((a,b)=>{
+      if(a.sinCatalogo&&b.sinCatalogo)return 0;
+      if(a.sinCatalogo)return 1;
+      if(b.sinCatalogo)return -1;
+      return (b.gananciaEstimada||0)-(a.gananciaEstimada||0);
+    });
+    setResultadosLocal(resultados);
+    setAnalisis(null);
+  }
+
+  // ── Función que decide: motor local (gratis) o Claude API (Opción 2) ──
+  function analizarTodos(){
+    setResultadosLocal(null);setAnalisis(null);
+    if(motorIA==="claude") return analizarConClaude();
+    return analizarTodosLocal();
   }
 
   async function analizarConClaude(){
@@ -5593,7 +5906,7 @@ Por favor:
 
       contentParts.push({type:"text",text:userMessage});
 
-      const response=await fetch("https://api.anthropic.com/v1/messages",{
+      const response=await fetch("/.netlify/functions/claude-proxy",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -5700,9 +6013,14 @@ Por favor:
 
       {err&&<p className="text-red-400 text-sm bg-red-900/30 border border-red-700 rounded-xl px-4 py-3">{err}</p>}
 
-      <Btn onClick={analizarPorLotes} disabled={loteLoading} full color="blue">
+      {motorIA!=="claude"?
+        <div className="bg-amber-900/20 border border-amber-700/40 rounded-2xl p-4 text-center">
+          <p className="text-amber-300 font-bold text-sm mb-1">🔒 Esta función necesita la Opción 2 (Claude API)</p>
+          <p className="text-slate-400 text-xs">Buscar un vehículo solo por su número de lote requiere buscar en internet en tiempo real, algo que el Motor Local no puede hacer. Activá la Claude API en Admin para usar esta función. Mientras tanto, usá el <b>Modo Manual</b> — funciona 100% gratis.</p>
+        </div>
+      :<Btn onClick={analizarPorLotes} disabled={loteLoading} full color="blue">
         {loteLoading?"🔍 Claude está buscando los lotes...":"🤖 Analizar Lotes con Claude"}
-      </Btn>
+      </Btn>}
 
       {loteLoading&&<div className="text-center space-y-2 py-4">
         <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"/>
@@ -5849,6 +6167,15 @@ Por favor:
             <Inp label="Daño declarado" value={v.dano} onChange={val=>updVeh(v.id,"dano",val)}
               placeholder="Front end, Flood, Mechanical..."/>
             <div>
+              <label className="text-xs text-slate-400 block mb-1">Categoría (para motor local)</label>
+              <select value={v.categoria_dano||""} onChange={e=>updVeh(v.id,"categoria_dano",e.target.value)}
+                className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
+                {CATEGORIAS_DANO.map(c=><option key={c.v} value={c.v}>{c.l}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div>
               <label className="text-xs text-slate-400 block mb-1">¿Arranca y maneja?</label>
               <select value={v.arranca||""} onChange={e=>updVeh(v.id,"arranca",e.target.value)}
                 className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
@@ -5915,13 +6242,58 @@ Por favor:
     </div>}
 
     {/* Botón analizar */}
+    <div className="flex items-center justify-between text-xs mb-1">
+      <span className="text-slate-500">Motor de análisis:</span>
+      <span className={`font-bold px-2 py-0.5 rounded-full ${motorIA==="claude"?"bg-purple-900/40 text-purple-300":"bg-emerald-900/40 text-emerald-300"}`}>
+        {motorIA==="claude"?"🤖 Claude API":"⚙️ Motor Local (gratis)"}
+      </span>
+    </div>
     {err&&<p className="text-red-400 text-sm bg-red-900/30 border border-red-700 rounded-xl px-4 py-3">{err}</p>}
-    <Btn onClick={analizarConClaude} disabled={loading} full color="blue">
-      {loading?"🤖 Analizando con Claude...":"🤖 Analizar y Recomendar"}
+    <Btn onClick={analizarTodos} disabled={loading} full color="blue">
+      {loading?"🤖 Analizando con Claude...":"🔍 Analizar y Recomendar"}
     </Btn>
     {loading&&<div className="text-center space-y-2">
       <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"/>
       <p className="text-slate-400 text-sm">Claude está evaluando daños, calculando rentabilidad<br/>y buscando banderas rojas...</p>
+    </div>}
+
+    {/* RESULTADOS DEL MOTOR LOCAL — comparativo de vehículos */}
+    {resultadosLocal&&<div className="space-y-3">
+      <p className="text-xs font-bold text-emerald-300 uppercase tracking-wider">⚙️ Comparativo — Motor Local ({resultadosLocal.length} vehículo{resultadosLocal.length>1?"s":""})</p>
+      {resultadosLocal.map((r,i)=>(
+        <div key={i} className={`rounded-2xl p-4 border ${i===0&&!r.sinCatalogo?"bg-emerald-900/20 border-emerald-600/40":"bg-white/5 border-white/10"}`}>
+          <div className="flex justify-between items-start mb-2">
+            <p className="text-white font-bold text-sm">{i===0&&!r.sinCatalogo&&"🏆 "}{r.marca} {r.modelo} {r.año||""}</p>
+            {!r.sinCatalogo&&<span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.margenPct>=0.20?"bg-emerald-900/40 text-emerald-300":"bg-amber-900/40 text-amber-300"}`}>
+              {(r.margenPct*100).toFixed(1)}% margen
+            </span>}
+          </div>
+          {r.sinCatalogo?
+            <p className="text-amber-400 text-xs">{r.mensaje}</p>
+          :<>
+            <div className="grid grid-cols-3 gap-2 text-center text-xs mb-2">
+              <div><p className="text-slate-500">Puja Máxima</p><p className="text-white font-bold">{usd(r.pujaMaxima)}</p></div>
+              <div><p className="text-slate-500">Venta Estimada</p><p className="text-white font-bold">{usd(r.precioVentaEstimado)}</p></div>
+              <div><p className="text-slate-500">Ganancia</p><p className="text-emerald-400 font-bold">{usd(r.gananciaEstimada)}</p></div>
+            </div>
+            {r.categoria_dano&&<div className="border-t border-white/10 pt-2 mt-2">
+              <p className="text-xs text-slate-400 mb-1">
+                🔧 Reparación estimada ({CATEGORIAS_DANO.find(c=>c.v===r.categoria_dano)?.l||r.categoria_dano}):
+                <span className="text-white font-bold ml-1">{usd(r.reparacion.totalUsd)}</span>
+                {!r.reparacion.confiable&&<span className="text-amber-500 ml-1">(estimado genérico — sin match exacto en catálogo de partes)</span>}
+              </p>
+              {r.piezasEstimadas.length>0&&<div className="space-y-0.5">
+                {r.piezasEstimadas.map((p,j)=>(
+                  <div key={j} className="flex justify-between text-xs text-slate-500">
+                    <span>{p.nombre}</span><span>{usd(p.precio)}</span>
+                  </div>
+                ))}
+              </div>}
+            </div>}
+          </>}
+        </div>
+      ))}
+      <p className="text-xs text-slate-600 text-center">💡 Estimado con datos locales — no reemplaza la inspección física del vehículo.</p>
     </div>}
 
     {/* RESULTADOS — solo en modo manual */}
@@ -6474,6 +6846,7 @@ function App(){
   const [fletes,setFletes]=useState([]);
   const [gruaLocalHN,setGruaLocalHN]=useState([]);
   const [catalogo,setCatalogo]=useState([]);
+  const [partesPorModelo,setPartesPorModelo]=useState([]);
   const [pedidos,setPedidos]=useState([]);
   const [proveedores,setProveedores]=useState([]);
   const [config,setConfig]=useState({tc:25.20});
@@ -6521,7 +6894,7 @@ function App(){
         return;
       }
     }
-    const [usrs,vehs,cls,cfg,cat,prc,gru,flt,ghl,peds,provs]=await Promise.all([
+    const [usrs,vehs,cls,cfg,cat,prc,gru,flt,ghl,peds,provs,partes]=await Promise.all([
       dbGet("usuarios","?order=created_at.asc"),
       dbGet("vehiculos","?order=created_at.desc"),
       dbGet("clientes","?order=created_at.desc"),
@@ -6533,11 +6906,13 @@ function App(){
       dbGet("grua_local_hn","?order=turismo.asc").catch(()=>[]),
       dbGet("pedidos","?order=created_at.desc").catch(()=>[]),
       dbGet("proveedores","?order=favorito.desc,calificacion.desc,nombre.asc").catch(()=>[]),
+      dbGet("partes_por_modelo","?order=marca.asc,modelo.asc").catch(()=>[]),
     ]);
     setUsers(usrs||[]);
     setVehiculos((vehs||[]).map(vehFromDb));
     setClientes(cls||[]);
     setCatalogo(cat||[]);
+    setPartesPorModelo(partes||[]);
     // Parse precios_config into easy object
     const preciosObj={};
     (prc||[]).forEach(r=>{
@@ -6639,9 +7014,9 @@ function App(){
             <div className="flex-1 max-w-5xl w-full mx-auto pb-20 md:pb-4">
               {screen==="dashboard"&&<ErrorBoundary><DashboardScreen {...ctx}/></ErrorBoundary>}
               {screen==="vehiculos"&&<ErrorBoundary><VehiculosScreen {...ctx}/></ErrorBoundary>}
-              {screen==="ia"&&<AnalisisIAScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config}/>}
+              {screen==="ia"&&<AnalisisIAScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config} partesPorModelo={partesPorModelo}/>}
               {screen==="puja"&&<MaxBidScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config}/>}
-              {screen==="korea"&&<KoreaImportScreen config={config} vehiculos={vehiculos} setVehiculos={setVehiculos} clientes={clientes}/>}
+              {screen==="korea"&&<KoreaImportScreen config={config} vehiculos={vehiculos} setVehiculos={setVehiculos} clientes={clientes} precios={precios}/>}
               {screen==="marketing"&&<MarketingScreen vehiculos={vehiculos} clientes={clientes} config={config} precios={precios}/>}
               {screen==="clientes"&&<ClientesScreen clientes={clientes} setClientes={setClientes} vehiculos={vehiculos} session={session} config={config}/>}
               {screen==="proveedores"&&<ProveedoresScreen proveedores={proveedores} setProveedores={setProveedores} session={session} config={config}/>}
