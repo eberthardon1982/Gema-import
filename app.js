@@ -502,8 +502,10 @@ function LoginScreen({users,onLogin,onReconfigure}){
   async function doLogin(){
     if(!usuario||!pin){setErr("Ingresa tu usuario y tu PIN");return;}
     setLoading(true);setErr("");
-    const ok=await onLogin(usuario.trim(),pin);
-    if(!ok){setErr("Usuario o PIN incorrecto. Intenta de nuevo.");setPin("");}
+    try{
+      const ok=await onLogin(usuario.trim(),pin);
+      if(!ok){setErr("Usuario o PIN incorrecto. Intenta de nuevo.");setPin("");}
+    }catch(e){setErr(e.message);setPin("");}
     setLoading(false);
   }
 
@@ -6860,11 +6862,13 @@ function App(){
         _url=creds.url; _key=creds.key;
         const usrsFrescos=await loadData();
         const sess=await pget(K_SESS);
-        if(sess?.userId){
+        const SESION_MAX_HORAS=12;
+        const sesionVencida=sess?.loginAt&&(Date.now()-new Date(sess.loginAt).getTime())>SESION_MAX_HORAS*3600*1000;
+        if(sess?.userId&&!sesionVencida){
           const u=(usrsFrescos||[]).find(u=>u.id===sess.userId);
           if(u&&u.activo){ setSession({user:u,loginAt:sess.loginAt}); setScreen("dashboard"); window.history.replaceState({gemaScreen:"dashboard"},"",""); }
           else setScreen("login");
-        } else setScreen("login");
+        } else { await pset(K_SESS,null); setScreen("login"); }
       }catch(e){ setErr("Error de conexión: "+e.message); setScreen("setup"); }
     }
     init();
@@ -6943,8 +6947,20 @@ function App(){
   }
 
   async function handleLogin(usuario,pin){
+    const K_INTENTOS="iv3_login_intentos_"+usuario.toLowerCase();
+    const intentos=JSON.parse(localStorage.getItem(K_INTENTOS)||'{"fallos":0,"hasta":0}');
+    if(intentos.hasta&&Date.now()<intentos.hasta){
+      const minutos=Math.ceil((intentos.hasta-Date.now())/60000);
+      throw new Error(`Demasiados intentos fallidos. Esperá ${minutos} minuto(s) antes de volver a intentar.`);
+    }
     const u=users.find(u=>u.usuario===usuario&&u.pin===hashPin(pin)&&u.activo);
-    if(!u) return false;
+    if(!u){
+      const nuevosFallos=(intentos.fallos||0)+1;
+      const bloqueo=nuevosFallos>=5?{fallos:0,hasta:Date.now()+5*60000}:{fallos:nuevosFallos,hasta:0};
+      localStorage.setItem(K_INTENTOS,JSON.stringify(bloqueo));
+      return false;
+    }
+    localStorage.removeItem(K_INTENTOS);
     const sess={userId:u.id,loginAt:new Date().toISOString()};
     await pset(K_SESS,sess);
     setSession({user:u,loginAt:sess.loginAt});
