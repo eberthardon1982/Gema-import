@@ -311,6 +311,9 @@ const totalCosto = c => !c?0:Object.values(c).reduce((s,v)=>s+(+v||0),0);
 // Personal storage helpers (localStorage real del navegador)
 async function pget(key){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):null; }catch{ return null; }}
 async function pset(key,val){ try{ localStorage.setItem(key,JSON.stringify(val)); }catch{} }
+// Sesión: usa sessionStorage — sobrevive a un F5 pero se borra al cerrar el navegador/pestaña
+async function sessGet(key){ try{ const v=sessionStorage.getItem(key); return v?JSON.parse(v):null; }catch{ return null; }}
+async function sessSet(key,val){ try{ if(val==null) sessionStorage.removeItem(key); else sessionStorage.setItem(key,JSON.stringify(val)); }catch{} }
 
 // ══════════════════════════════════════════════════════════════
 // SUPABASE REST API LAYER
@@ -6861,14 +6864,14 @@ function App(){
         if(!creds?.url||!creds?.key){ setScreen("setup"); return; }
         _url=creds.url; _key=creds.key;
         const usrsFrescos=await loadData();
-        const sess=await pget(K_SESS);
+        const sess=await sessGet(K_SESS);
         const SESION_MAX_HORAS=12;
         const sesionVencida=sess?.loginAt&&(Date.now()-new Date(sess.loginAt).getTime())>SESION_MAX_HORAS*3600*1000;
         if(sess?.userId&&!sesionVencida){
           const u=(usrsFrescos||[]).find(u=>u.id===sess.userId);
           if(u&&u.activo){ setSession({user:u,loginAt:sess.loginAt}); setScreen("dashboard"); window.history.replaceState({gemaScreen:"dashboard"},"",""); }
           else setScreen("login");
-        } else { await pset(K_SESS,null); setScreen("login"); }
+        } else { await sessSet(K_SESS,null); setScreen("login"); }
       }catch(e){ setErr("Error de conexión: "+e.message); setScreen("setup"); }
     }
     init();
@@ -6962,7 +6965,7 @@ function App(){
     }
     localStorage.removeItem(K_INTENTOS);
     const sess={userId:u.id,loginAt:new Date().toISOString()};
-    await pset(K_SESS,sess);
+    await sessSet(K_SESS,sess);
     setSession({user:u,loginAt:sess.loginAt});
     setScreen("dashboard");
     window.history.replaceState({gemaScreen:"dashboard"},"","");
@@ -6970,7 +6973,7 @@ function App(){
   }
 
   async function handleLogout(){
-    await pset(K_SESS,null);
+    await sessSet(K_SESS,null);
     setSession(null); setScreen("login");
     window.history.replaceState({gemaScreen:"login"},"","");
   }
