@@ -6443,6 +6443,22 @@ function App(){
   const [session,setSession]=useState(null);
   const [online,setOnline]=useState(navigator.onLine);
 
+  // Navegación con historial del navegador — para que "Atrás" vuelva
+  // a la pantalla anterior DENTRO de la app, en vez de salir de ella.
+  const navigate=useCallback(nuevaScreen=>{
+    setScreen(nuevaScreen);
+    window.history.pushState({gemaScreen:nuevaScreen},"","");
+  },[]);
+
+  useEffect(()=>{
+    function onPopState(e){
+      const s=e.state?.gemaScreen;
+      if(s) setScreen(s);
+    }
+    window.addEventListener("popstate",onPopState);
+    return()=>window.removeEventListener("popstate",onPopState);
+  },[]);
+
   useEffect(()=>{
     const on=()=>setOnline(true);
     const off=()=>setOnline(false);
@@ -6473,7 +6489,7 @@ function App(){
         const sess=await pget(K_SESS);
         if(sess?.userId){
           const u=users.find?.(u=>u.id===sess.userId);
-          if(u&&u.activo){ setSession({user:u,loginAt:sess.loginAt}); setScreen("dashboard"); }
+          if(u&&u.activo){ setSession({user:u,loginAt:sess.loginAt}); setScreen("dashboard"); window.history.replaceState({gemaScreen:"dashboard"},"",""); }
           else setScreen("login");
         } else setScreen("login");
       }catch(e){ setErr("Error de conexión: "+e.message); setScreen("setup"); }
@@ -6497,6 +6513,7 @@ function App(){
         setGruaLocalHN(cache.gruaLocalHN||[]);
         setPedidos(cache.pedidos||[]);
         setScreen("dashboard");
+        window.history.replaceState({gemaScreen:"dashboard"},"","");
         return;
       }else{
         setError("Sin conexión a internet y sin datos guardados. Conectate a internet para el primer uso.");
@@ -6557,12 +6574,14 @@ function App(){
     await pset(K_SESS,sess);
     setSession({user:u,loginAt:sess.loginAt});
     setScreen("dashboard");
+    window.history.replaceState({gemaScreen:"dashboard"},"","");
     return true;
   }
 
   async function handleLogout(){
     await pset(K_SESS,null);
     setSession(null); setScreen("login");
+    window.history.replaceState({gemaScreen:"login"},"","");
   }
 
   function handleReconfigure(){
@@ -6588,7 +6607,7 @@ function App(){
         <div className="flex min-h-screen">
 
           {/* SIDEBAR — solo desktop (md+) */}
-          <BottomNav screen={screen} onNav={setScreen} session={session}
+          <BottomNav screen={screen} onNav={navigate} session={session}
             vehiculos={vehiculos} handleLogout={handleLogout} precios={precios||{}}/>
 
           {/* MAIN CONTENT */}
