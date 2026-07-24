@@ -6858,10 +6858,10 @@ function App(){
         const creds=await pget(K_CREDS);
         if(!creds?.url||!creds?.key){ setScreen("setup"); return; }
         _url=creds.url; _key=creds.key;
-        await loadData();
+        const usrsFrescos=await loadData();
         const sess=await pget(K_SESS);
         if(sess?.userId){
-          const u=users.find?.(u=>u.id===sess.userId);
+          const u=(usrsFrescos||[]).find(u=>u.id===sess.userId);
           if(u&&u.activo){ setSession({user:u,loginAt:sess.loginAt}); setScreen("dashboard"); window.history.replaceState({gemaScreen:"dashboard"},"",""); }
           else setScreen("login");
         } else setScreen("login");
@@ -6887,7 +6887,7 @@ function App(){
         setPedidos(cache.pedidos||[]);
         setScreen("dashboard");
         window.history.replaceState({gemaScreen:"dashboard"},"","");
-        return;
+        return cache.users||[];
       }else{
         setError("Sin conexión a internet y sin datos guardados. Conectate a internet para el primer uso.");
         setScreen("error");
@@ -7014,15 +7014,15 @@ function App(){
             <div className="flex-1 max-w-5xl w-full mx-auto pb-20 md:pb-4">
               {screen==="dashboard"&&<ErrorBoundary><DashboardScreen {...ctx}/></ErrorBoundary>}
               {screen==="vehiculos"&&<ErrorBoundary><VehiculosScreen {...ctx}/></ErrorBoundary>}
-              {screen==="ia"&&<AnalisisIAScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config} partesPorModelo={partesPorModelo}/>}
-              {screen==="puja"&&<MaxBidScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config}/>}
-              {screen==="korea"&&<KoreaImportScreen config={config} vehiculos={vehiculos} setVehiculos={setVehiculos} clientes={clientes} precios={precios}/>}
-              {screen==="marketing"&&<MarketingScreen vehiculos={vehiculos} clientes={clientes} config={config} precios={precios}/>}
-              {screen==="clientes"&&<ClientesScreen clientes={clientes} setClientes={setClientes} vehiculos={vehiculos} session={session} config={config}/>}
-              {screen==="proveedores"&&<ProveedoresScreen proveedores={proveedores} setProveedores={setProveedores} session={session} config={config}/>}
-              {screen==="pedidos"&&<PedidosScreen clientes={clientes} vehiculos={vehiculos} session={session} config={config} pedidos={pedidos} setPedidos={setPedidos}/>}
-              {screen==="reportes"&&<ReportesScreen {...ctx}/>}
-              {screen==="admin"&&session.user.rol==="ADMIN"&&<AdminScreen {...ctx}/>}
+              {screen==="ia"&&<ErrorBoundary><AnalisisIAScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config} partesPorModelo={partesPorModelo}/></ErrorBoundary>}
+              {screen==="puja"&&<ErrorBoundary><MaxBidScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config}/></ErrorBoundary>}
+              {screen==="korea"&&<ErrorBoundary><KoreaImportScreen config={config} vehiculos={vehiculos} setVehiculos={setVehiculos} clientes={clientes} precios={precios}/></ErrorBoundary>}
+              {screen==="marketing"&&<ErrorBoundary><MarketingScreen vehiculos={vehiculos} clientes={clientes} config={config} precios={precios}/></ErrorBoundary>}
+              {screen==="clientes"&&<ErrorBoundary><ClientesScreen clientes={clientes} setClientes={setClientes} vehiculos={vehiculos} session={session} config={config}/></ErrorBoundary>}
+              {screen==="proveedores"&&<ErrorBoundary><ProveedoresScreen proveedores={proveedores} setProveedores={setProveedores} session={session} config={config}/></ErrorBoundary>}
+              {screen==="pedidos"&&<ErrorBoundary><PedidosScreen clientes={clientes} vehiculos={vehiculos} session={session} config={config} pedidos={pedidos} setPedidos={setPedidos}/></ErrorBoundary>}
+              {screen==="reportes"&&<ErrorBoundary><ReportesScreen {...ctx}/></ErrorBoundary>}
+              {screen==="admin"&&session.user.rol==="ADMIN"&&<ErrorBoundary><AdminScreen {...ctx}/></ErrorBoundary>}
             </div>
           </div>
         </div>
