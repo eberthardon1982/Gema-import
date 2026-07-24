@@ -773,6 +773,106 @@ function FotosVehiculo({veh,onUpdate}){
   </div>;
 }
 
+function PagosParciales({veh,config,onUpdate}){
+  const tc=config?.tc||25.20;
+  const [nuevo,setNuevo]=useState({monto:"",fecha:today(),metodo:"Efectivo",notas:""});
+  const [err,setErr]=useState("");
+  const pagos=veh.venta?.pagos||[];
+  const totalPagado=pagos.reduce((s,p)=>s+(+p.monto||0),0);
+  const precioVenta=veh.venta?.precio||0;
+  const saldo=precioVenta-totalPagado;
+
+  async function agregarPago(){
+    if(!nuevo.monto||parseFloat(nuevo.monto)<=0){setErr("Ingresa un monto válido");return;}
+    setErr("");
+    const pago={id:"pago_"+uid(),monto:parseFloat(nuevo.monto),fecha:nuevo.fecha,metodo:nuevo.metodo,notas:nuevo.notas};
+    const obj={...veh,venta:{...veh.venta,pagos:[...pagos,pago]}};
+    try{
+      await dbUpsert("vehiculos",[vehToDb(obj)]);
+      onUpdate(obj);
+      setNuevo({monto:"",fecha:today(),metodo:"Efectivo",notas:""});
+    }catch(e){setErr("Error al guardar: "+e.message);}
+  }
+
+  async function borrarPago(id){
+    const obj={...veh,venta:{...veh.venta,pagos:pagos.filter(p=>p.id!==id)}};
+    try{
+      await dbUpsert("vehiculos",[vehToDb(obj)]);
+      onUpdate(obj);
+    }catch(e){setErr("Error al borrar: "+e.message);}
+  }
+
+  return <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">💵 Pagos Parciales</p>
+    <div className="grid grid-cols-3 gap-2 text-center text-xs mb-3">
+      <div><p className="text-slate-500">Precio Venta</p><p className="text-white font-bold">{usd(precioVenta)}</p></div>
+      <div><p className="text-slate-500">Pagado</p><p className="text-emerald-400 font-bold">{usd(totalPagado)}</p></div>
+      <div><p className="text-slate-500">Saldo</p><p className={`font-bold ${saldo<=0?"text-emerald-400":"text-amber-400"}`}>{usd(saldo)}</p></div>
+    </div>
+    {pagos.length>0&&<div className="space-y-1.5 mb-3">
+      {pagos.map(p=>(
+        <div key={p.id} className="flex justify-between items-center bg-white/5 rounded-lg px-2 py-1.5 text-xs">
+          <div>
+            <span className="text-white font-semibold">{usd(p.monto)}</span>
+            <span className="text-slate-500 ml-2">{p.metodo} · {fmtD(p.fecha)}</span>
+          </div>
+          <button onClick={()=>borrarPago(p.id)} className="text-red-400 hover:text-red-300">✕</button>
+        </div>
+      ))}
+    </div>}
+    {saldo>0&&<div className="grid grid-cols-2 gap-2">
+      <input type="number" placeholder="Monto $" value={nuevo.monto} onChange={e=>setNuevo({...nuevo,monto:e.target.value})}
+        className="bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400"/>
+      <select value={nuevo.metodo} onChange={e=>setNuevo({...nuevo,metodo:e.target.value})}
+        className="bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
+        <option>Efectivo</option><option>Transferencia</option><option>Cheque</option><option>Tarjeta</option>
+      </select>
+      <input type="date" value={nuevo.fecha} onChange={e=>setNuevo({...nuevo,fecha:e.target.value})}
+        className="bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400"/>
+      <Btn onClick={agregarPago} small>+ Agregar Pago</Btn>
+    </div>}
+    {err&&<p className="text-red-400 text-xs mt-2">{err}</p>}
+  </div>;
+}
+
+function ComparativoEstimadoReal({veh,config,onUpdate}){
+  const tc=config?.tc||25.20;
+  const [err,setErr]=useState("");
+  const est=veh.costos||{};
+  const real=veh.costo_real_total;
+  const estTotal=totalCosto(est);
+  const diff=real?real-estTotal:null;
+
+  async function guardarReal(valor){
+    const n=valor?parseFloat(valor):null;
+    if(n===real)return;
+    try{
+      await onUpdate({costo_real_total:n});
+    }catch(e){setErr("Error al guardar: "+e.message);}
+  }
+
+  return <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📊 Comparativo: Estimado vs Real</p>
+    <div className="grid grid-cols-2 gap-3 text-center text-xs mb-2">
+      <div><p className="text-slate-500">Costo Estimado</p><p className="text-white font-bold">{usd(estTotal)}</p></div>
+      <div>
+        <p className="text-slate-500">Costo Real</p>
+        <div className="relative">
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+          <input type="number" defaultValue={real||""} placeholder={estTotal.toFixed(0)}
+            onBlur={e=>guardarReal(e.target.value)}
+            className="w-full bg-white/10 text-white border border-white/20 rounded-lg pl-5 pr-2 py-1 text-sm text-center focus:outline-none focus:border-blue-400"/>
+        </div>
+      </div>
+    </div>
+    {diff!==null&&<p className={`text-xs text-center font-semibold ${diff>0?"text-red-400":diff<0?"text-emerald-400":"text-slate-400"}`}>
+      {diff>0?`⚠️ Costó $${Math.abs(diff).toLocaleString()} más de lo estimado`:diff<0?`✅ Costó $${Math.abs(diff).toLocaleString()} menos de lo estimado`:"Costó exactamente lo estimado"}
+    </p>}
+    {!real&&<p className="text-xs text-slate-600 text-center">Ingresá el costo real total cuando lo tengas — por ahora se usa el estimado.</p>}
+    {err&&<p className="text-red-400 text-xs mt-1">{err}</p>}
+  </div>;
+}
+
 function VehDetalleModal({veh,onClose,onUpdate,users,clientes,tc,session}){
   const [tab,setTab]=useState("info");
   const [nuevoEst,setNuevoEst]=useState(veh.estado);
@@ -994,12 +1094,10 @@ function VehDetalleModal({veh,onClose,onUpdate,users,clientes,tc,session}){
         {veh.notas&&<div className="bg-white/5 rounded-xl p-3 text-sm text-slate-300">📝 {veh.notas}</div>}
 
         {/* Pagos parciales — solo si está vendido */}
-        {veh.estado==="VENDIDO"&&veh.venta&&<PagosParciales veh={veh} config={{tc}} onUpdate={vehActualizado=>{
-          setVehiculos(prev=>prev.map(v=>v.id===vehActualizado.id?vehActualizado:v));
-        }}/>}
+        {veh.estado==="VENDIDO"&&veh.venta&&<PagosParciales veh={veh} config={{tc}} onUpdate={vehActualizado=>onUpdate(vehActualizado)}/>}
 
         {/* Comparativo estimado vs real */}
-        <ComparativoEstimadoReal veh={veh} config={{tc}}/>
+        <ComparativoEstimadoReal veh={veh} config={{tc}} onUpdate={onUpdate}/>
       </div>}
 
       {tab==="costos"&&<div className="space-y-1 text-sm">
