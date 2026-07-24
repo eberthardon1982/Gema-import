@@ -737,7 +737,7 @@ function FotosVehiculo({veh,onUpdate}){
         headers:{"Authorization":`Bearer ${creds.key}`,"apikey":creds.key,"Content-Type":file.type,"x-upsert":"true"},
         body:file
       });
-      if(!r.ok)throw new Error("Error al subir la foto. Verifica el bucket vehiculos-fotos en Supabase Storage.");
+      if(!r.ok){const detalle=await r.text().catch(()=>"");throw new Error(`Error al subir (${r.status}): ${detalle.substring(0,150)}`);}
       const url=`${creds.url}/storage/v1/object/public/vehiculos-fotos/${path}`;
       const obj={...veh,fotos:[...fotos,url]};
       await dbUpsert("vehiculos",[vehToDb(obj)]);
@@ -3493,7 +3493,7 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
                           headers:{"Authorization":`Bearer ${creds.key}`,"apikey":creds.key,"Content-Type":file.type,"x-upsert":"true"},
                           body:file
                         });
-                        if(!r.ok)throw new Error("Error al subir. Verificar bucket vehiculos-fotos en Supabase Storage.");
+                        if(!r.ok){const detalle=await r.text().catch(()=>"");throw new Error(`Error al subir (${r.status}): ${detalle.substring(0,150)}`);}
                         const url=`${creds.url}/storage/v1/object/public/vehiculos-fotos/empresa/logo.${ext}?t=${Date.now()}`;
                         await savePrecio("logo_url",url,"Logo empresa");
                       }catch(e){alert(e.message);}
