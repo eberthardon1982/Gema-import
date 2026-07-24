@@ -361,9 +361,13 @@ function vehToDb(v) {
   const out = { ...v, agno: v.año||v.agno, dano: v.daño||v.dano,
     año:undefined, daño:undefined };
   // Campos numéricos: convertir "" a null para evitar error de tipo en Postgres
-  ["millaje","comision_compra","costo_real_total"].forEach(k=>{
+  ["millaje","comision_compra","costo_real_total","precio_venta_pedido"].forEach(k=>{
     if(out[k]==="") out[k]=null;
     else if(out[k]!=null) out[k]=parseFloat(out[k]);
+  });
+  // Claves foráneas: "" no es válido, debe ser null si no hay cliente/referidor
+  ["cliente_id","referidor_compra_id"].forEach(k=>{
+    if(out[k]==="") out[k]=null;
   });
   return out;
 }
