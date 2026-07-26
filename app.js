@@ -4327,15 +4327,29 @@ function CatalogoFormModal({item,onClose,onSave,err}){
 
 function UserFormModal({user,onClose,onSave}){
   const [f,setF]=useState({nombre:user?.nombre||"",usuario:user?.usuario||"",pin:"",rol:user?.rol||"OPERADOR"});
+  const randId=useMemo(()=>Math.random().toString(36).slice(2),[]);
   return <Modal title={user?"Editar Usuario":"Nuevo Usuario"} onClose={onClose}>
     <div className="space-y-3">
-      {/* Campos señuelo invisibles — atrapan el autocompletado del navegador
-          antes de que llegue a los campos reales de usuario/PIN de abajo */}
-      <input type="text" name="fake_user_trap" autoComplete="username" style={{position:"absolute",opacity:0,height:0,width:0,pointerEvents:"none"}} tabIndex={-1}/>
-      <input type="password" name="fake_pass_trap" autoComplete="new-password" style={{position:"absolute",opacity:0,height:0,width:0,pointerEvents:"none"}} tabIndex={-1}/>
       <Inp label="Nombre Completo" value={f.nombre} onChange={v=>setF(p=>({...p,nombre:v}))} req/>
-      <Inp label="Usuario (login)" value={f.usuario} onChange={v=>setF(p=>({...p,usuario:v.toLowerCase().replace(/\s/g,"")}))} req autoComplete="off"/>
-      <Inp label={user?"Nuevo PIN (vacío = no cambiar)":"PIN de Acceso"} value={f.pin} onChange={v=>setF(p=>({...p,pin:v}))} type="password" placeholder="••••" req={!user} autoComplete="new-password"/>
+
+      <div>
+        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Usuario (login)<span className="text-red-400 ml-0.5">*</span></label>
+        <input type="text" name={`campo_${randId}_a`} value={f.usuario}
+          onChange={e=>setF(p=>({...p,usuario:e.target.value.toLowerCase().replace(/\s/g,"")}))}
+          readOnly autoComplete="off"
+          onFocus={e=>e.target.removeAttribute("readOnly")}
+          className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"/>
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{user?"Nuevo PIN (vacío = no cambiar)":"PIN de Acceso"}<span className="text-red-400 ml-0.5">*</span></label>
+        <input type="password" name={`campo_${randId}_b`} value={f.pin} placeholder="••••"
+          onChange={e=>setF(p=>({...p,pin:e.target.value}))}
+          readOnly autoComplete="off"
+          onFocus={e=>e.target.removeAttribute("readOnly")}
+          className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"/>
+      </div>
+
       <Sel label="Rol" value={f.rol} onChange={v=>setF(p=>({...p,rol:v}))} options={Object.entries(ROLES).map(([v,l])=>({v,l}))}/>
       <div className="bg-white/5 rounded-xl p-3 text-xs text-slate-400">
         <p className="font-bold text-slate-300 mb-1">Permisos:</p>
