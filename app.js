@@ -635,7 +635,7 @@ function DashboardScreen({vehiculos,session,config,proveedores}){
 // ══════════════════════════════════════════════════════════════
 // VEHÍCULOS
 // ══════════════════════════════════════════════════════════════
-function VehiculosScreen({vehiculos,setVehiculos,clientes,users,session,config,catalogo,gruas,fletes,precios,gruaLocalHN}){
+function VehiculosScreen({vehiculos,setVehiculos,clientes,users,session,config,catalogo,gruas,fletes,precios,gruaLocalHN,proveedores}){
   const [q,setQ]=useState("");
   const [filtEst,setFiltEst]=useState("TODOS");
   const [sel,setSel]=useState(null);
@@ -4378,7 +4378,7 @@ function DocumentosKoreaChecklist(){
   </div>;
 }
 
-function KoreaImportScreen({config,vehiculos,setVehiculos,clientes,precios}){
+function KoreaImportScreen({config,vehiculos,setVehiculos,clientes,precios,gruaLocalHN}){
   const tc=config?.tc||25.20;
   const motorIA=precios?.motor_ia||"local"; // "local" (gratis) | "claude" (Opción 2)
   const [tab,setTab]=useState("calculadora"); // calculadora | buscar | registrar
@@ -4398,6 +4398,7 @@ function KoreaImportScreen({config,vehiculos,setVehiculos,clientes,precios}){
     cliente_id:"",
   });
   const [resultado,setResultado]=useState(null);
+  const [destCiudad,setDestCiudad]=useState("Danlí / El Paraíso");
   const [busqQ,setQ2]=useState("");
   const [busqFiltros,setBusqFiltros]=useState({
     tipo:"bus_county",
@@ -7035,7 +7036,7 @@ function App(){
               {screen==="vehiculos"&&<ErrorBoundary><VehiculosScreen {...ctx}/></ErrorBoundary>}
               {screen==="ia"&&<ErrorBoundary><AnalisisIAScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config} partesPorModelo={partesPorModelo}/></ErrorBoundary>}
               {screen==="puja"&&<ErrorBoundary><MaxBidScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config}/></ErrorBoundary>}
-              {screen==="korea"&&<ErrorBoundary><KoreaImportScreen config={config} vehiculos={vehiculos} setVehiculos={setVehiculos} clientes={clientes} precios={precios}/></ErrorBoundary>}
+              {screen==="korea"&&<ErrorBoundary><KoreaImportScreen config={config} vehiculos={vehiculos} setVehiculos={setVehiculos} clientes={clientes} precios={precios} gruaLocalHN={gruaLocalHN}/></ErrorBoundary>}
               {screen==="marketing"&&<ErrorBoundary><MarketingScreen vehiculos={vehiculos} clientes={clientes} config={config} precios={precios}/></ErrorBoundary>}
               {screen==="clientes"&&<ErrorBoundary><ClientesScreen clientes={clientes} setClientes={setClientes} vehiculos={vehiculos} session={session} config={config}/></ErrorBoundary>}
               {screen==="proveedores"&&<ErrorBoundary><ProveedoresScreen proveedores={proveedores} setProveedores={setProveedores} session={session} config={config}/></ErrorBoundary>}
