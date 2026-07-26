@@ -386,12 +386,12 @@ const Btn=({onClick,children,color="blue",disabled,small,full})=>{
   const c={blue:"bg-blue-600 hover:bg-blue-500 text-white",green:"bg-emerald-600 hover:bg-emerald-500 text-white",red:"bg-red-700 hover:bg-red-600 text-white",gray:"bg-white/10 hover:bg-white/20 text-slate-300",amber:"bg-amber-600 hover:bg-amber-500 text-white"};
   return <button onClick={onClick} disabled={disabled} className={`${full?"w-full":""} ${small?"px-3 py-1.5 text-xs":"px-4 py-2.5 text-sm"} rounded-xl font-bold transition-all ${disabled?"opacity-40 cursor-not-allowed":c[color]||c.blue}`}>{children}</button>;
 };
-const Inp=({label,value,onChange,type="text",placeholder="",prefix,suffix,req,note,onKeyDown})=>(
+const Inp=({label,value,onChange,type="text",placeholder="",prefix,suffix,req,note,onKeyDown,autoComplete})=>(
   <div>
     {label&&<label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}{req&&<span className="text-red-400 ml-0.5">*</span>}</label>}
     <div className="relative">
       {prefix&&<span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{prefix}</span>}
-      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} onKeyDown={onKeyDown}
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} onKeyDown={onKeyDown} autoComplete={autoComplete||"off"}
         className={`w-full bg-white/10 text-white border border-white/20 rounded-xl py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-slate-600 ${prefix?"pl-7":"pl-3"} ${suffix?"pr-10":"pr-3"}`}/>
       {suffix&&<span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">{suffix}</span>}
     </div>
@@ -4330,8 +4330,8 @@ function UserFormModal({user,onClose,onSave}){
   return <Modal title={user?"Editar Usuario":"Nuevo Usuario"} onClose={onClose}>
     <div className="space-y-3">
       <Inp label="Nombre Completo" value={f.nombre} onChange={v=>setF(p=>({...p,nombre:v}))} req/>
-      <Inp label="Usuario (login)" value={f.usuario} onChange={v=>setF(p=>({...p,usuario:v.toLowerCase().replace(/\s/g,"")}))} req/>
-      <Inp label={user?"Nuevo PIN (vacío = no cambiar)":"PIN de Acceso"} value={f.pin} onChange={v=>setF(p=>({...p,pin:v}))} type="password" placeholder="••••" req={!user}/>
+      <Inp label="Usuario (login)" value={f.usuario} onChange={v=>setF(p=>({...p,usuario:v.toLowerCase().replace(/\s/g,"")}))} req autoComplete="off"/>
+      <Inp label={user?"Nuevo PIN (vacío = no cambiar)":"PIN de Acceso"} value={f.pin} onChange={v=>setF(p=>({...p,pin:v}))} type="password" placeholder="••••" req={!user} autoComplete="new-password"/>
       <Sel label="Rol" value={f.rol} onChange={v=>setF(p=>({...p,rol:v}))} options={Object.entries(ROLES).map(([v,l])=>({v,l}))}/>
       <div className="bg-white/5 rounded-xl p-3 text-xs text-slate-400">
         <p className="font-bold text-slate-300 mb-1">Permisos:</p>
