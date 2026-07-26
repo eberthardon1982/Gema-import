@@ -2647,6 +2647,58 @@ const TEMAS_EDUCATIVOS=[
   "Toyota Hilux vs Isuzu D-Max: ¿cuál conviene más?",
 ];
 
+function generarPlanContenido(tema,duracion,empresa){
+  if(duracion==="semanal"){
+    return `📅 PLAN DE CONTENIDO — 1 SEMANA — Tema base: "${tema}"
+
+Día 1 (Lunes) — WhatsApp/Estado: Presentá el tema con un dato sorprendente o una pregunta directa.
+Día 2 (Martes) — Facebook: Desarrollá el tema completo con 3-4 puntos clave y una imagen relacionada.
+Día 3 (Miércoles) — TikTok/Reel: Versión corta y visual del mismo tema, con gancho fuerte en los primeros 3 segundos.
+Día 4 (Jueves) — Instagram: Carrusel o Reel con los mismos puntos, adaptado al formato visual de la plataforma.
+Día 5 (Viernes) — Vehículo disponible: Mostrá un vehículo que se relacione con el tema (ej. si el tema es sobre pickups, mostrá una pickup disponible).
+Día 6 (Sábado) — X/Twitter: Hilo corto retomando el tema con un ángulo distinto o una pregunta a la audiencia.
+Día 7 (Domingo) — Descanso o repost del contenido de mayor alcance de la semana.
+
+💡 Este mismo tema se puede repetir en 2-3 meses con un ángulo nuevo (ej. un caso real de un cliente, o una actualización de precios/trámites).`;
+  }
+
+  if(duracion==="mensual"){
+    return `🗓️ PLAN DE CONTENIDO — 1 MES (4 semanas) — Tema base: "${tema}"
+
+SEMANA 1 — Fundamento del tema
+Presentá "${tema}" desde cero. Post educativo completo en Facebook + versión corta en TikTok/Instagram. El objetivo es que quien no sabe nada del tema, salga entendiéndolo.
+
+SEMANA 2 — Vehículos + casos reales
+Mostrá 2-3 vehículos disponibles que conecten con el tema de la semana 1. Si el tema fue sobre pickups, mostrá pickups disponibles. Incluí un caso real si tenés alguno (sin datos personales del cliente).
+
+SEMANA 3 — Mismo tema, ángulo distinto
+Retomá "${tema}" pero desde otra perspectiva: una comparación, un mito común que la gente cree, o una pregunta frecuente que te hacen los clientes sobre esto.
+
+SEMANA 4 — Cierre + nuevo gancho
+Resumen de lo aprendido en el mes (post tipo "carrusel" o hilo). Cerrá invitando a contactar para casos específicos. Aprovechá para sembrar el tema del próximo mes.
+
+💡 Alterná el formato por plataforma cada semana: no repitas el mismo texto en todas — la idea central se mantiene, pero el formato cambia (texto largo en Facebook, video corto en TikTok/Reels, hilo en X).
+
+💡 Este tema completo puede repetirse en 3-4 meses con datos actualizados (nuevos precios, cambios de trámites, o testimonios nuevos).`;
+  }
+
+  // trimestral
+  return `📆 PLAN DE CONTENIDO — 1 TRIMESTRE (3 meses) — Tema base: "${tema}"
+
+MES 1 — Educación de base
+Cubrí "${tema}" a fondo: qué es, por qué importa, y los conceptos clave. Este mes es 100% educativo, sin vender directamente. Publicá 2-3 veces por semana alternando plataformas (Facebook/Instagram para desarrollo, TikTok para versión corta, WhatsApp para recordatorios).
+
+MES 2 — Vehículos y prueba social
+Conectá el tema con vehículos reales disponibles y, si es posible, testimonios o casos de clientes que ya importaron. El contenido educativo del mes 1 se convierte en la base de confianza; este mes es donde eso se traduce en consultas y ventas.
+
+MES 3 — Repetición con ángulo renovado + expansión
+Repetí los temas más fuertes del mes 1, pero con un ángulo nuevo: actualización de cifras, una pregunta frecuente que surgió en los meses anteriores, o comparando "antes vs ahora". Cerrá el trimestre con un resumen tipo "lo que aprendimos este trimestre" que sirva como puerta de entrada para gente nueva que te empieza a seguir.
+
+💡 Regla de oro: nunca repitas el mismo post palabra por palabra. Repetí la IDEA con datos actualizados o un ejemplo nuevo — así sigue sonando fresco aunque el tema de fondo sea el mismo.
+
+💡 Aprovechá el mes 3 para identificar qué formato/plataforma dio más resultado en los meses 1 y 2, y dale más peso a eso en el trimestre siguiente.`;
+}
+
 function MarketingScreen({vehiculos,clientes,config,precios}){
   const tc=config?.tc||25.20;
   const [modo,setModo]=useState("vehiculo"); // "vehiculo" | "educativo"
@@ -2654,6 +2706,7 @@ function MarketingScreen({vehiculos,clientes,config,precios}){
   const [plat,setPlat]=useState("whatsapp");
   const [temaEdu,setTemaEdu]=useState(TEMAS_EDUCATIVOS[0]);
   const [temaCustom,setTemaCustom]=useState("");
+  const [duracionPlan,setDuracionPlan]=useState("semanal"); // semanal | mensual | trimestral
   const [contenido,setContenido]=useState(null);
   const [loading,setLoading]=useState(false);
   const [copiado,setCopiado]=useState(null);
@@ -2796,17 +2849,7 @@ Tags sugeridos: importacion honduras, ${empresa.toLowerCase().replace(/\s+/g,"")
 
 4/ ¿Preguntas? ${wa} 📲 #Honduras #Importacion`,
 
-        educativo:`📅 PLAN DE CONTENIDO — 1 semana — Tema base: "${tema}"
-
-Día 1 (Lunes) — WhatsApp/Estado: Presentá el tema con un dato sorprendente o una pregunta directa.
-Día 2 (Martes) — Facebook: Desarrollá el tema completo con 3-4 puntos clave y una imagen relacionada.
-Día 3 (Miércoles) — TikTok/Reel: Versión corta y visual del mismo tema, con gancho fuerte en los primeros 3 segundos.
-Día 4 (Jueves) — Telegram: Resumen del tema en formato de lista rápida, fácil de leer.
-Día 5 (Viernes) — Vehículo disponible: Aprovechá para mostrar un vehículo que se relacione con el tema (ej. si el tema es sobre pickups, mostrá una pickup disponible).
-Día 6 (Sábado) — X/Twitter: Hilo corto retomando el tema con un ángulo distinto o una pregunta a la audiencia.
-Día 7 (Domingo) — Descanso o repost del contenido de mayor alcance de la semana.
-
-💡 Sugerencia: este mismo tema se puede repetir en 2-3 meses con un ángulo nuevo (ej. un caso real de un cliente, o una actualización de precios/trámites).`,
+        educativo:generarPlanContenido(tema,duracionPlan,empresa),
       };
       out=textosEdu[plat]||textosEdu.whatsapp;
     }
@@ -2870,7 +2913,11 @@ IMPORTANTE: El contenido debe sonar humano y natural, no como robot. Que genere 
           instagram:`Crea contenido educativo para Instagram sobre: "${tema}". Primero describí qué mostrar visualmente (carrusel de slides con datos, o Reel). Después el caption: gancho corto, 2-3 puntos clave del tema, cierre invitando a guardar el post o escribir por dudas. Sugiere entre 8 y 12 hashtags relevantes para Honduras. Tono cercano y educativo, en español hondureño. Máximo 150 palabras.`,
           tiktok:`Crea el guión completo para un TikTok educativo sobre: "${tema}". Duración: 45-60 segundos. Que empiece con un dato sorprendente o pregunta intrigante que haga parar el scroll. Formato con GANCHO / DESARROLLO / CIERRE. Muy dinámico, ritmo rápido, lenguaje de Honduras.`,
           youtube:`Crea un guión completo para un video de YouTube de 3-5 minutos sobre: "${tema}". Incluye: intro, desarrollo con puntos clave, ejemplos reales del mercado hondureño, cierre y suscripción. También crea título SEO optimizado, descripción completa y 8 tags.`,
-          educativo:`Crea un plan de contenido de 1 semana completo sobre el tema: "${tema}". Para cada día, sugiere: tema específico, plataforma ideal, formato (post, video, historia), gancho principal y puntos clave a cubrir. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras.`,
+          educativo:duracionPlan==="semanal"
+            ?`Crea un plan de contenido de 1 semana (7 días) sobre el tema: "${tema}". Para cada día, sugiere: tema específico, plataforma ideal, formato (post, video, historia), gancho principal y puntos clave a cubrir. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras.`
+            :duracionPlan==="mensual"
+            ?`Crea un plan de contenido de 1 mes (4 semanas) sobre el tema: "${tema}". Para cada semana, sugiere: sub-tema o ángulo específico, plataformas a usar, formato, y 2-3 ideas de publicación concretas. Es importante que cada semana aporte algo distinto (no repetir el mismo ángulo) y que el plan avance de lo educativo hacia mostrar vehículos y casos reales. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras.`
+            :`Crea un plan de contenido de 1 trimestre (3 meses) sobre el tema: "${tema}". Para cada mes, sugiere el enfoque general (mes 1 educativo, mes 2 vehículos/prueba social, mes 3 repetición con ángulo renovado), plataformas prioritarias, y 3-4 ideas concretas de publicación por mes. Explica también cómo evitar que el contenido se sienta repetitivo al repetir temas de un mes a otro. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras a largo plazo.`,
         };
 
         prompt=`Eres un experto en marketing digital para el mercado hondureño, especializado en el sector de importación de vehículos desde subastas americanas.
@@ -3018,6 +3065,20 @@ El contenido debe: ser 100% en español hondureño natural, aportar valor real (
         ))}
       </div>
     </div>
+
+    {/* Duración del plan — solo aplica a "Plan de Contenido" */}
+    {plat==="educativo"&&<div>
+      <label className="text-xs text-slate-400 block mb-2">Duración del plan</label>
+      <div className="grid grid-cols-3 gap-2">
+        {[["semanal","📅 Semanal","7 días"],["mensual","🗓️ Mensual","4 semanas"],["trimestral","📆 Trimestral","3 meses"]].map(([v,l,sub])=>(
+          <button key={v} onClick={()=>setDuracionPlan(v)}
+            className={`py-2 rounded-xl text-xs font-bold border-2 transition-all ${duracionPlan===v?"border-purple-500 bg-purple-900/40 text-purple-300":"border-white/15 text-slate-500"}`}>
+            <span className="block">{l}</span>
+            <span className="text-[10px] text-slate-600">{sub}</span>
+          </button>
+        ))}
+      </div>
+    </div>}
 
     <div className="flex items-center justify-between text-xs mb-1">
       <span className="text-slate-500">Motor de contenido:</span>
