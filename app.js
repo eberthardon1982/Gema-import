@@ -2626,7 +2626,8 @@ const ESTADOS_PEDIDO={
 const PLATAFORMAS_MKT=[
   {id:"whatsapp",label:"WhatsApp / Canal",emoji:"💬",color:"text-emerald-400"},
   {id:"telegram",label:"Telegram",emoji:"✈️",color:"text-blue-400"},
-  {id:"facebook",label:"Facebook / Instagram",emoji:"📘",color:"text-indigo-400"},
+  {id:"facebook",label:"Facebook",emoji:"📘",color:"text-indigo-400"},
+  {id:"instagram",label:"Instagram",emoji:"📸",color:"text-fuchsia-400"},
   {id:"tiktok",label:"TikTok / Reels",emoji:"🎵",color:"text-pink-400"},
   {id:"youtube",label:"YouTube Short",emoji:"▶️",color:"text-red-400"},
   {id:"twitter",label:"X / Twitter",emoji:"🐦",color:"text-sky-400"},
@@ -2706,6 +2707,17 @@ Vehículo importado con toda la documentación en regla. Consultá por financiam
 
 #ImportacionHonduras #VehiculosUsados #Honduras`,
 
+        instagram:`IDEA VISUAL: Foto o Reel corto mostrando el vehículo — arranca con un plano general, después detalles (llantas, interior, motor).
+
+CAPTION:
+${nombre}${color} 🔥
+
+${rasgos?`${rasgos}\n`:""}💰 ${precioL}${precioU?` (${precioU})`:""}
+
+Importado directo, sin intermediarios. DM o WhatsApp: ${wa} 📲
+
+#ImportacionHonduras #${selVeh.marca.replace(/\s+/g,"")} #CarrosUsados #Honduras #Subasta #VehiculosImportados #Tegucigalpa #SanPedroSula #CarrosHN #ImportacionVehicular #Danli`,
+
         tiktok:`GANCHO (cámara, primeros 3 seg): "¿Buscás un ${selVeh.marca} sin pagar precio de agencia?"
 
 TEXTO EN PANTALLA: "${nombre} — Importado 🇺🇸➡️🇭🇳"
@@ -2750,6 +2762,17 @@ Este es uno de los temas que más nos preguntan en ${empresa}. La importación d
 ¿Tenés preguntas sobre tu situación? Escribinos al ${wa}, con gusto te asesoramos.
 
 #ImportacionVehiculos #Honduras #AsesoriaGratis`,
+
+        instagram:`IDEA VISUAL: Carrusel de 3-4 slides o Reel explicando el tema con texto en pantalla, o una foto relacionada con un dato destacado sobreimpreso.
+
+CAPTION:
+${tema} 💡
+
+Este es uno de los temas que más nos preguntan en ${empresa}. Guardá este post para cuando lo necesites 📌
+
+¿Dudas sobre tu caso? Escribinos: ${wa}
+
+#ImportacionHonduras #Honduras #CarrosUsados #TipsDeImportacion #Aduanas #Subasta #CarrosHN #AsesoriaGratis #Tegucigalpa #SanPedroSula`,
 
         tiktok:`GANCHO: "${tema}" (leer directo a cámara, tono de pregunta genuina)
 
@@ -2815,6 +2838,7 @@ Día 7 (Domingo) — Descanso o repost del contenido de mayor alcance de la sema
           telegram:`Crea un mensaje para canal de Telegram anunciando este vehículo. Telegram permite formato enriquecido: usa **texto en negrita** para el título y precio, _cursiva_ para detalles, emojis estratégicos. Máximo 400 caracteres para que no se corte. En español hondureño. Tono profesional y atractivo. Termina con link de WhatsApp o contacto. El mensaje debe verse elegante en un canal de Telegram.`,
           twitter:`Crea un hilo de Twitter/X de 3-4 tweets anunciando este vehículo. Cada tweet máximo 280 caracteres. El primero debe ser el gancho que hace parar el scroll. Incluye precio en Lempiras. Usar hashtags relevantes. En español hondureño.`,
           facebook:`Incluye: gancho inicial llamativo, descripción del vehículo con sus puntos fuertes, precio en Lempiras y dólares, llamada a la acción. Máximo 200 palabras. Sugiere también 3 hashtags relevantes para Honduras. En español hondureño.`,
+          instagram:`Crea contenido para Instagram anunciando este vehículo. Primero describí brevemente qué mostrar en la imagen o Reel (composición visual). Después el caption: gancho corto, 2-3 datos clave del vehículo, precio, llamada a la acción con emoji de DM/WhatsApp. Sugiere entre 8 y 12 hashtags relevantes para Honduras (mezcla de específicos y generales). Tono cercano, en español hondureño. Máximo 150 palabras en el caption.`,
           tiktok:`Crea un SCRIPT completo para un video de TikTok o Reel de 30-45 segundos anunciando este vehículo. Formato:
 1. GANCHO (primeros 3 segundos — lo que SE DICE en cámara)
 2. TEXTO EN PANTALLA (lo que aparece escrito)
@@ -2843,6 +2867,7 @@ IMPORTANTE: El contenido debe sonar humano y natural, no como robot. Que genere 
           telegram:`Crea 2 mensajes para canal de Telegram educativos sobre: "${tema}". Telegram permite **negrita** y _cursiva_. Máximo 400 caracteres cada uno. Que sean informativos y terminen posicionando a ${empresa} como expertos.`,
           twitter:`Crea un hilo de 4 tweets educativos sobre: "${tema}". Cada tweet máximo 280 caracteres. Que el primero sea un dato sorprendente. Con hashtags. En español.`,
           facebook:`Que sea informativo y útil, posicionando a ${empresa} como expertos. Incluye datos concretos, usa lenguaje de Honduras. Al final, llamada sutil a la acción. Con hashtags sugeridos.`,
+          instagram:`Crea contenido educativo para Instagram sobre: "${tema}". Primero describí qué mostrar visualmente (carrusel de slides con datos, o Reel). Después el caption: gancho corto, 2-3 puntos clave del tema, cierre invitando a guardar el post o escribir por dudas. Sugiere entre 8 y 12 hashtags relevantes para Honduras. Tono cercano y educativo, en español hondureño. Máximo 150 palabras.`,
           tiktok:`Crea el guión completo para un TikTok educativo sobre: "${tema}". Duración: 45-60 segundos. Que empiece con un dato sorprendente o pregunta intrigante que haga parar el scroll. Formato con GANCHO / DESARROLLO / CIERRE. Muy dinámico, ritmo rápido, lenguaje de Honduras.`,
           youtube:`Crea un guión completo para un video de YouTube de 3-5 minutos sobre: "${tema}". Incluye: intro, desarrollo con puntos clave, ejemplos reales del mercado hondureño, cierre y suscripción. También crea título SEO optimizado, descripción completa y 8 tags.`,
           educativo:`Crea un plan de contenido de 1 semana completo sobre el tema: "${tema}". Para cada día, sugiere: tema específico, plataforma ideal, formato (post, video, historia), gancho principal y puntos clave a cubrir. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras.`,
@@ -3509,7 +3534,7 @@ function ReportesScreen({vehiculos,users,clientes,config}){
 // ══════════════════════════════════════════════════════════════
 // ADMIN
 // ══════════════════════════════════════════════════════════════
-function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes,gruaLocalHN,setGruaLocalHN}){
+function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes,gruaLocalHN,setGruaLocalHN,catalogo,setCatalogo}){
   const [tab,setTab]=useState("general");
   const [showUser,setShowUser]=useState(false);
   const [editUser,setEditUser]=useState(null);
@@ -3522,6 +3547,30 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
   const [subiendoLogo,setSubiendoLogo]=useState(false);
 
   const showMsg=(txt,ok=true)=>{setMsg({txt,ok});setTimeout(()=>setMsg(null),2500);};
+
+  const [catQ,setCatQ]=useState("");
+  const [showCatForm,setShowCatForm]=useState(false);
+  const [editCat,setEditCat]=useState(null);
+  const [catErr,setCatErr]=useState("");
+  const filtCatalogo=useMemo(()=>{
+    const q=catQ.trim().toLowerCase();
+    if(!q) return (catalogo||[]).slice(0,30);
+    return (catalogo||[]).filter(c=>(c.marca+" "+c.modelo).toLowerCase().includes(q)).slice(0,30);
+  },[catalogo,catQ]);
+
+  async function saveCatalogoItem(data){
+    setCatErr("");
+    if(!data.marca||!data.modelo){setCatErr("Marca y modelo son obligatorios");return;}
+    const obj=editCat
+      ?{...editCat,...data}
+      :{id:(data.marca+"_"+data.modelo+"_"+Date.now()).toLowerCase().replace(/\s+/g,"_"),...data};
+    try{
+      await dbUpsert("catalogo_vehiculos",[obj]);
+      setCatalogo(prev=>editCat?prev.map(c=>c.id===editCat.id?obj:c):[obj,...(prev||[])]);
+      setShowCatForm(false);setEditCat(null);
+      showMsg("✅ Catálogo actualizado");
+    }catch(e){setCatErr("Error al guardar: "+e.message);}
+  }
 
   async function saveUser(data){
     const pin=data.pin?hashPin(data.pin):null;
@@ -3591,7 +3640,7 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
   const copartFee=precios?.buyer_fee_copart||COPART_FEE.map(([max,fee])=>({max,fee}));
   const iaaiFee=precios?.buyer_fee_iaai||IAAI_FEE.map(([max,fee])=>({max,fee}));
 
-  const TABS=[["general","⚙️ General"],["ia","🤖 Motor de IA"],["fletes","🚢 Fletes"],["gruas","🚛 Grúas USA"],["grua_hn","🏘️ Grúa HN"],["fees","💳 Buyer Fees"],["usuarios","👤 Usuarios"]];
+  const TABS=[["general","⚙️ General"],["ia","🤖 Motor de IA"],["catalogo","📋 Catálogo"],["fletes","🚢 Fletes"],["gruas","🚛 Grúas USA"],["grua_hn","🏘️ Grúa HN"],["fees","💳 Buyer Fees"],["usuarios","👤 Usuarios"]];
 
   return <div className="p-4 pb-24">
     <h2 className="text-xl font-black text-white mb-4">⚙️ Administración</h2>
@@ -3807,6 +3856,35 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
           <p className="text-xs text-slate-600 mt-2">🔒 Por seguridad, la clave de API nunca se guarda acá ni en Supabase — vive únicamente en la configuración de Netlify, invisible desde el navegador.</p>
         </div>}
       </Card>
+    </div>}
+
+    {/* ── TAB: CATÁLOGO DE VEHÍCULOS ── */}
+    {tab==="catalogo"&&<div className="space-y-3">
+      <Card>
+        <div className="flex justify-between items-center mb-2">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">📋 Catálogo de Referencia ({(catalogo||[]).length} modelos)</p>
+          <Btn onClick={()=>{setEditCat(null);setCatErr("");setShowCatForm(true);}} small>+ Modelo</Btn>
+        </div>
+        <p className="text-xs text-slate-500 mb-3">Agregá marcas y modelos que no estén en la lista, o corregí precios de referencia.</p>
+        <input value={catQ} onChange={e=>setCatQ(e.target.value)} placeholder="Buscar marca o modelo..."
+          className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-slate-600 mb-3"/>
+        <div className="space-y-1 max-h-96 overflow-y-auto">
+          {filtCatalogo.map(c=>(
+            <div key={c.id} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
+              <div>
+                <span className="text-white text-sm font-semibold">{c.marca} {c.modelo}</span>
+                <span className="text-slate-500 text-xs ml-2">{c.generacion||`${c.año_inicio||""}-${c.año_fin||""}`}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-400 text-xs">${c.precio_hn_bajo||0}-${c.precio_hn_alto||0}</span>
+                <Btn onClick={()=>{setEditCat(c);setCatErr("");setShowCatForm(true);}} color="gray" small>✏️</Btn>
+              </div>
+            </div>
+          ))}
+          {filtCatalogo.length===0&&<p className="text-xs text-slate-600 text-center py-4">No se encontraron modelos. Agregá uno nuevo con "+ Modelo".</p>}
+        </div>
+      </Card>
+      {showCatForm&&<CatalogoFormModal item={editCat} onClose={()=>{setShowCatForm(false);setEditCat(null);}} onSave={saveCatalogoItem} err={catErr}/>}
     </div>}
 
     {/* ── TAB: FLETES ── */}
@@ -4121,6 +4199,69 @@ function BuyerFeeTable({title,data,clave,onSave,disabled}){
     ))}
     <p className="text-xs text-slate-600 mt-2">El último tramo (999999) usa porcentaje en lugar de fee fijo.</p>
   </Card>;
+}
+
+function CatalogoFormModal({item,onClose,onSave,err}){
+  const [f,setF]=useState({
+    marca:item?.marca||"",modelo:item?.modelo||"",generacion:item?.generacion||"",
+    año_inicio:item?.año_inicio||"",año_fin:item?.año_fin||"",
+    cilindrada_cc:item?.cilindrada_cc||"",combustible:item?.combustible||"gasolina",
+    tipo_vehiculo:item?.tipo_vehiculo||"Turismo Grande",carroceria:item?.carroceria||"",
+    cafta_aplica:item?.cafta_aplica||false,
+    precio_hn_bajo:item?.precio_hn_bajo||"",precio_hn_alto:item?.precio_hn_alto||"",
+    observaciones:item?.observaciones||"",
+  });
+  const s=(k,v)=>setF(p=>({...p,[k]:v}));
+  function guardar(){
+    if(!f.marca||!f.modelo)return;
+    onSave({
+      ...f,
+      año_inicio:f.año_inicio?parseInt(f.año_inicio):null,
+      año_fin:f.año_fin?parseInt(f.año_fin):null,
+      cilindrada_cc:f.cilindrada_cc?parseInt(f.cilindrada_cc):null,
+      precio_hn_bajo:f.precio_hn_bajo?parseInt(f.precio_hn_bajo):null,
+      precio_hn_alto:f.precio_hn_alto?parseInt(f.precio_hn_alto):null,
+    });
+  }
+  return <Modal title={item?"Editar Modelo":"Nuevo Modelo del Catálogo"} onClose={onClose}>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        <Inp label="Marca" value={f.marca} onChange={v=>s("marca",v)} placeholder="Toyota" req/>
+        <Inp label="Modelo" value={f.modelo} onChange={v=>s("modelo",v)} placeholder="Corolla" req/>
+      </div>
+      <Inp label="Generación (texto libre, ej: 2014-2019)" value={f.generacion} onChange={v=>s("generacion",v)} placeholder="2014-2019"/>
+      <div className="grid grid-cols-2 gap-2">
+        <Inp label="Año inicio" value={f.año_inicio} onChange={v=>s("año_inicio",v)} type="number" placeholder="2014"/>
+        <Inp label="Año fin" value={f.año_fin} onChange={v=>s("año_fin",v)} type="number" placeholder="2019"/>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Inp label="Cilindrada (cc)" value={f.cilindrada_cc} onChange={v=>s("cilindrada_cc",v)} type="number" placeholder="1800"/>
+        <Sel label="Combustible" value={f.combustible} onChange={v=>s("combustible",v)}
+          options={[{v:"gasolina",l:"Gasolina"},{v:"diesel",l:"Diésel"},{v:"hibrido",l:"Híbrido"},{v:"electrico",l:"Eléctrico"}]}/>
+      </div>
+      <Sel label="Tipo de Vehículo" value={f.tipo_vehiculo} onChange={v=>s("tipo_vehiculo",v)}
+        options={[{v:"Turismo Chico",l:"Turismo Chico"},{v:"Turismo Grande",l:"Turismo Grande"},{v:"Camioneta/SUV",l:"Camioneta/SUV"},{v:"Pick-Up",l:"Pick-Up"},{v:"Camión",l:"Camión"},{v:"Bus de Pasajeros",l:"Bus de Pasajeros"},{v:"Van",l:"Van"}]}/>
+      <Inp label="Carrocería" value={f.carroceria} onChange={v=>s("carroceria",v)} placeholder="Sedan, SUV, Pickup..."/>
+      <div className="grid grid-cols-2 gap-2">
+        <Inp label="Precio HN bajo (USD)" value={f.precio_hn_bajo} onChange={v=>s("precio_hn_bajo",v)} type="number" prefix="$"/>
+        <Inp label="Precio HN alto (USD)" value={f.precio_hn_alto} onChange={v=>s("precio_hn_alto",v)} type="number" prefix="$"/>
+      </div>
+      <label className="flex items-center gap-2 text-sm text-slate-300">
+        <input type="checkbox" checked={f.cafta_aplica} onChange={e=>s("cafta_aplica",e.target.checked)}/>
+        Aplica CAFTA (fabricado en USA — 0% DAI)
+      </label>
+      <div>
+        <label className="text-xs text-slate-400 block mb-1">Observaciones</label>
+        <textarea value={f.observaciones} onChange={e=>s("observaciones",e.target.value)} rows={2}
+          className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none"/>
+      </div>
+      {err&&<p className="text-red-400 text-xs text-center bg-red-900/30 border border-red-800 rounded-lg py-2">{err}</p>}
+      <div className="flex gap-3">
+        <Btn onClick={onClose} color="gray" full>Cancelar</Btn>
+        <Btn onClick={guardar} disabled={!f.marca||!f.modelo} full>Guardar</Btn>
+      </div>
+    </div>
+  </Modal>;
 }
 
 function UserFormModal({user,onClose,onSave}){
@@ -6983,7 +7124,7 @@ function App(){
     setScreen("setup");
   }
 
-  const ctx={session,users,setUsers,vehiculos,setVehiculos,clientes,setClientes,catalogo,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes,gruaLocalHN,setGruaLocalHN,pedidos,setPedidos,proveedores,setProveedores,handleLogout};
+  const ctx={session,users,setUsers,vehiculos,setVehiculos,clientes,setClientes,catalogo,setCatalogo,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes,gruaLocalHN,setGruaLocalHN,pedidos,setPedidos,proveedores,setProveedores,handleLogout};
 
   if(screen==="loading") return(
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-4">
