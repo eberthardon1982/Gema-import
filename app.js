@@ -506,7 +506,7 @@ function LoginScreen({users,onLogin,onReconfigure}){
     if(!usuario||!pin){setErr("Ingresa tu usuario y tu PIN");return;}
     setLoading(true);setErr("");
     try{
-      const ok=await onLogin(usuario.trim(),pin);
+      const ok=await onLogin(usuario.trim().toLowerCase(),pin);
       if(!ok){setErr("Usuario o PIN incorrecto. Intenta de nuevo.");setPin("");}
     }catch(e){setErr(e.message);setPin("");}
     setLoading(false);
@@ -3920,7 +3920,7 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
     {tab==="usuarios"&&<Card>
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Usuarios ({users.length}/10)</p>
-        {users.length<10&&<Btn onClick={()=>setShowUser(true)} small>+ Usuario</Btn>}
+        {users.length<10&&<Btn onClick={()=>{setEditUser(null);setShowUser(true);}} small>+ Usuario</Btn>}
       </div>
       {users.map(u=><div key={u.id} className={`flex items-center justify-between py-2.5 border-b border-white/5 ${!u.activo?"opacity-50":""}`}>
         <div><p className="text-white font-semibold text-sm">{u.nombre}</p><p className="text-slate-400 text-xs">@{u.usuario} · {ROLES[u.rol]||u.rol} · {u.activo?"✅":"❌"}</p></div>
@@ -4060,7 +4060,7 @@ function FleteRow({row,onSave,disabled}){
         <input key={i} type="number" value={v} onChange={e=>sv(e.target.value)}
           className="bg-white/10 text-white border border-white/20 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-blue-400 text-center"/>
       ))}
-      <Btn onClick={save} disabled={disabled} small color={ok?"green":"gray"}>{ok?"✅":"OK"}</Btn>
+      <Btn onClick={save} disabled={disabled} small color={ok?"green":"blue"}>{ok?"✅":"💾"}</Btn>
     </div>
   </div>;
 }
@@ -4135,7 +4135,7 @@ function UserFormModal({user,onClose,onSave}){
         <p className="font-bold text-slate-300 mb-1">Permisos:</p>
         {{ADMIN:"Acceso total al sistema",GERENTE:"Solo reportes — sin modificar datos",OPERADOR:"Registrar vehículos y ventas",AUDITOR:"Solo lectura"}[f.rol]}
       </div>
-      <div className="flex gap-3"><Btn onClick={onClose} color="gray" full>Cancelar</Btn><Btn onClick={()=>{if(!f.nombre||!f.usuario)return;onSave(f);}} full>Guardar</Btn></div>
+      <div className="flex gap-3"><Btn onClick={onClose} color="gray" full>Cancelar</Btn><Btn onClick={()=>{if(!f.nombre||!f.usuario||(!user&&!f.pin))return;onSave(f);}} full>Guardar</Btn></div>
     </div>
   </Modal>;
 }
