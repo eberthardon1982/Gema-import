@@ -3813,8 +3813,8 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
     {tab==="fletes"&&<Card>
       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">🚢 Fletes Marítimos por Tipo de Vehículo</p>
       <p className="text-xs text-slate-500 mb-3">Precios en USD por tipo de vehículo y puerto de exportación</p>
-      <div className="grid grid-cols-4 gap-1 text-xs font-bold text-slate-400 mb-2 px-1">
-        <span>Tipo</span><span className="text-center">🌴 FL</span><span className="text-center">⭐ TX</span><span className="text-center">🦅 DE</span>
+      <div className="grid grid-cols-5 gap-1 text-xs font-bold text-slate-400 mb-2 px-1">
+        <span>Tipo</span><span className="text-center">🌴 FL</span><span className="text-center">⭐ TX</span><span className="text-center">🦅 DE</span><span></span>
       </div>
       {(fletes||[]).map(row=><FleteRow key={row.id} row={row} onSave={saveFlete} disabled={saving}/>)}
     </Card>}
@@ -4054,8 +4054,8 @@ function FleteRow({row,onSave,disabled}){
     setOk(true);setTimeout(()=>setOk(false),1500);
   }
   return <div className="border-b border-white/5 py-2">
-    <p className="text-xs text-slate-300 font-semibold mb-1.5">{row.tipo_vehiculo}</p>
-    <div className="grid grid-cols-4 gap-1 items-center">
+    <div className="grid grid-cols-5 gap-1 items-center">
+      <p className="text-xs text-slate-300 font-semibold">{row.tipo_vehiculo}</p>
       {[[fl,setFl],[tx,setTx],[de,setDe]].map(([v,sv],i)=>(
         <input key={i} type="number" value={v} onChange={e=>sv(e.target.value)}
           className="bg-white/10 text-white border border-white/20 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-blue-400 text-center"/>
