@@ -4329,6 +4329,10 @@ function UserFormModal({user,onClose,onSave}){
   const [f,setF]=useState({nombre:user?.nombre||"",usuario:user?.usuario||"",pin:"",rol:user?.rol||"OPERADOR"});
   return <Modal title={user?"Editar Usuario":"Nuevo Usuario"} onClose={onClose}>
     <div className="space-y-3">
+      {/* Campos señuelo invisibles — atrapan el autocompletado del navegador
+          antes de que llegue a los campos reales de usuario/PIN de abajo */}
+      <input type="text" name="fake_user_trap" autoComplete="username" style={{position:"absolute",opacity:0,height:0,width:0,pointerEvents:"none"}} tabIndex={-1}/>
+      <input type="password" name="fake_pass_trap" autoComplete="new-password" style={{position:"absolute",opacity:0,height:0,width:0,pointerEvents:"none"}} tabIndex={-1}/>
       <Inp label="Nombre Completo" value={f.nombre} onChange={v=>setF(p=>({...p,nombre:v}))} req/>
       <Inp label="Usuario (login)" value={f.usuario} onChange={v=>setF(p=>({...p,usuario:v.toLowerCase().replace(/\s/g,"")}))} req autoComplete="off"/>
       <Inp label={user?"Nuevo PIN (vacío = no cambiar)":"PIN de Acceso"} value={f.pin} onChange={v=>setF(p=>({...p,pin:v}))} type="password" placeholder="••••" req={!user} autoComplete="new-password"/>
