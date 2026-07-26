@@ -3509,7 +3509,7 @@ function ReportesScreen({vehiculos,users,clientes,config}){
 // ══════════════════════════════════════════════════════════════
 // ADMIN
 // ══════════════════════════════════════════════════════════════
-function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes}){
+function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes,gruaLocalHN,setGruaLocalHN}){
   const [tab,setTab]=useState("general");
   const [showUser,setShowUser]=useState(false);
   const [editUser,setEditUser]=useState(null);
