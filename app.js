@@ -311,9 +311,6 @@ const totalCosto = c => !c?0:Object.values(c).reduce((s,v)=>s+(+v||0),0);
 // Personal storage helpers (localStorage real del navegador)
 async function pget(key){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):null; }catch{ return null; }}
 async function pset(key,val){ try{ localStorage.setItem(key,JSON.stringify(val)); }catch{} }
-// Sesión: usa sessionStorage — sobrevive a un F5 pero se borra al cerrar el navegador/pestaña
-async function sessGet(key){ try{ const v=sessionStorage.getItem(key); return v?JSON.parse(v):null; }catch{ return null; }}
-async function sessSet(key,val){ try{ if(val==null) sessionStorage.removeItem(key); else sessionStorage.setItem(key,JSON.stringify(val)); }catch{} }
 
 // ══════════════════════════════════════════════════════════════
 // SUPABASE REST API LAYER
@@ -386,12 +383,12 @@ const Btn=({onClick,children,color="blue",disabled,small,full})=>{
   const c={blue:"bg-blue-600 hover:bg-blue-500 text-white",green:"bg-emerald-600 hover:bg-emerald-500 text-white",red:"bg-red-700 hover:bg-red-600 text-white",gray:"bg-white/10 hover:bg-white/20 text-slate-300",amber:"bg-amber-600 hover:bg-amber-500 text-white"};
   return <button onClick={onClick} disabled={disabled} className={`${full?"w-full":""} ${small?"px-3 py-1.5 text-xs":"px-4 py-2.5 text-sm"} rounded-xl font-bold transition-all ${disabled?"opacity-40 cursor-not-allowed":c[color]||c.blue}`}>{children}</button>;
 };
-const Inp=({label,value,onChange,type="text",placeholder="",prefix,suffix,req,note,onKeyDown,autoComplete})=>(
+const Inp=({label,value,onChange,type="text",placeholder="",prefix,suffix,req,note,onKeyDown})=>(
   <div>
     {label&&<label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}{req&&<span className="text-red-400 ml-0.5">*</span>}</label>}
     <div className="relative">
       {prefix&&<span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{prefix}</span>}
-      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} onKeyDown={onKeyDown} autoComplete={autoComplete||"off"}
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} onKeyDown={onKeyDown}
         className={`w-full bg-white/10 text-white border border-white/20 rounded-xl py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-slate-600 ${prefix?"pl-7":"pl-3"} ${suffix?"pr-10":"pr-3"}`}/>
       {suffix&&<span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">{suffix}</span>}
     </div>
@@ -505,10 +502,8 @@ function LoginScreen({users,onLogin,onReconfigure}){
   async function doLogin(){
     if(!usuario||!pin){setErr("Ingresa tu usuario y tu PIN");return;}
     setLoading(true);setErr("");
-    try{
-      const ok=await onLogin(usuario.trim().toLowerCase(),pin);
-      if(!ok){setErr("Usuario o PIN incorrecto. Intenta de nuevo.");setPin("");}
-    }catch(e){setErr(e.message);setPin("");}
+    const ok=await onLogin(usuario.trim(),pin);
+    if(!ok){setErr("Usuario o PIN incorrecto. Intenta de nuevo.");setPin("");}
     setLoading(false);
   }
 
@@ -635,7 +630,7 @@ function DashboardScreen({vehiculos,session,config,proveedores}){
 // ══════════════════════════════════════════════════════════════
 // VEHÍCULOS
 // ══════════════════════════════════════════════════════════════
-function VehiculosScreen({vehiculos,setVehiculos,clientes,users,session,config,catalogo,gruas,fletes,precios,gruaLocalHN,proveedores}){
+function VehiculosScreen({vehiculos,setVehiculos,clientes,users,session,config,catalogo,gruas,fletes,precios,gruaLocalHN}){
   const [q,setQ]=useState("");
   const [filtEst,setFiltEst]=useState("TODOS");
   const [sel,setSel]=useState(null);
@@ -2626,8 +2621,7 @@ const ESTADOS_PEDIDO={
 const PLATAFORMAS_MKT=[
   {id:"whatsapp",label:"WhatsApp / Canal",emoji:"💬",color:"text-emerald-400"},
   {id:"telegram",label:"Telegram",emoji:"✈️",color:"text-blue-400"},
-  {id:"facebook",label:"Facebook",emoji:"📘",color:"text-indigo-400"},
-  {id:"instagram",label:"Instagram",emoji:"📸",color:"text-fuchsia-400"},
+  {id:"facebook",label:"Facebook / Instagram",emoji:"📘",color:"text-indigo-400"},
   {id:"tiktok",label:"TikTok / Reels",emoji:"🎵",color:"text-pink-400"},
   {id:"youtube",label:"YouTube Short",emoji:"▶️",color:"text-red-400"},
   {id:"twitter",label:"X / Twitter",emoji:"🐦",color:"text-sky-400"},
@@ -2647,58 +2641,6 @@ const TEMAS_EDUCATIVOS=[
   "Toyota Hilux vs Isuzu D-Max: ¿cuál conviene más?",
 ];
 
-function generarPlanContenido(tema,duracion,empresa){
-  if(duracion==="semanal"){
-    return `📅 PLAN DE CONTENIDO — 1 SEMANA — Tema base: "${tema}"
-
-Día 1 (Lunes) — WhatsApp/Estado: Presentá el tema con un dato sorprendente o una pregunta directa.
-Día 2 (Martes) — Facebook: Desarrollá el tema completo con 3-4 puntos clave y una imagen relacionada.
-Día 3 (Miércoles) — TikTok/Reel: Versión corta y visual del mismo tema, con gancho fuerte en los primeros 3 segundos.
-Día 4 (Jueves) — Instagram: Carrusel o Reel con los mismos puntos, adaptado al formato visual de la plataforma.
-Día 5 (Viernes) — Vehículo disponible: Mostrá un vehículo que se relacione con el tema (ej. si el tema es sobre pickups, mostrá una pickup disponible).
-Día 6 (Sábado) — X/Twitter: Hilo corto retomando el tema con un ángulo distinto o una pregunta a la audiencia.
-Día 7 (Domingo) — Descanso o repost del contenido de mayor alcance de la semana.
-
-💡 Este mismo tema se puede repetir en 2-3 meses con un ángulo nuevo (ej. un caso real de un cliente, o una actualización de precios/trámites).`;
-  }
-
-  if(duracion==="mensual"){
-    return `🗓️ PLAN DE CONTENIDO — 1 MES (4 semanas) — Tema base: "${tema}"
-
-SEMANA 1 — Fundamento del tema
-Presentá "${tema}" desde cero. Post educativo completo en Facebook + versión corta en TikTok/Instagram. El objetivo es que quien no sabe nada del tema, salga entendiéndolo.
-
-SEMANA 2 — Vehículos + casos reales
-Mostrá 2-3 vehículos disponibles que conecten con el tema de la semana 1. Si el tema fue sobre pickups, mostrá pickups disponibles. Incluí un caso real si tenés alguno (sin datos personales del cliente).
-
-SEMANA 3 — Mismo tema, ángulo distinto
-Retomá "${tema}" pero desde otra perspectiva: una comparación, un mito común que la gente cree, o una pregunta frecuente que te hacen los clientes sobre esto.
-
-SEMANA 4 — Cierre + nuevo gancho
-Resumen de lo aprendido en el mes (post tipo "carrusel" o hilo). Cerrá invitando a contactar para casos específicos. Aprovechá para sembrar el tema del próximo mes.
-
-💡 Alterná el formato por plataforma cada semana: no repitas el mismo texto en todas — la idea central se mantiene, pero el formato cambia (texto largo en Facebook, video corto en TikTok/Reels, hilo en X).
-
-💡 Este tema completo puede repetirse en 3-4 meses con datos actualizados (nuevos precios, cambios de trámites, o testimonios nuevos).`;
-  }
-
-  // trimestral
-  return `📆 PLAN DE CONTENIDO — 1 TRIMESTRE (3 meses) — Tema base: "${tema}"
-
-MES 1 — Educación de base
-Cubrí "${tema}" a fondo: qué es, por qué importa, y los conceptos clave. Este mes es 100% educativo, sin vender directamente. Publicá 2-3 veces por semana alternando plataformas (Facebook/Instagram para desarrollo, TikTok para versión corta, WhatsApp para recordatorios).
-
-MES 2 — Vehículos y prueba social
-Conectá el tema con vehículos reales disponibles y, si es posible, testimonios o casos de clientes que ya importaron. El contenido educativo del mes 1 se convierte en la base de confianza; este mes es donde eso se traduce en consultas y ventas.
-
-MES 3 — Repetición con ángulo renovado + expansión
-Repetí los temas más fuertes del mes 1, pero con un ángulo nuevo: actualización de cifras, una pregunta frecuente que surgió en los meses anteriores, o comparando "antes vs ahora". Cerrá el trimestre con un resumen tipo "lo que aprendimos este trimestre" que sirva como puerta de entrada para gente nueva que te empieza a seguir.
-
-💡 Regla de oro: nunca repitas el mismo post palabra por palabra. Repetí la IDEA con datos actualizados o un ejemplo nuevo — así sigue sonando fresco aunque el tema de fondo sea el mismo.
-
-💡 Aprovechá el mes 3 para identificar qué formato/plataforma dio más resultado en los meses 1 y 2, y dale más peso a eso en el trimestre siguiente.`;
-}
-
 function MarketingScreen({vehiculos,clientes,config,precios}){
   const tc=config?.tc||25.20;
   const [modo,setModo]=useState("vehiculo"); // "vehiculo" | "educativo"
@@ -2706,7 +2648,6 @@ function MarketingScreen({vehiculos,clientes,config,precios}){
   const [plat,setPlat]=useState("whatsapp");
   const [temaEdu,setTemaEdu]=useState(TEMAS_EDUCATIVOS[0]);
   const [temaCustom,setTemaCustom]=useState("");
-  const [duracionPlan,setDuracionPlan]=useState("semanal"); // semanal | mensual | trimestral
   const [contenido,setContenido]=useState(null);
   const [loading,setLoading]=useState(false);
   const [copiado,setCopiado]=useState(null);
@@ -2760,17 +2701,6 @@ Vehículo importado con toda la documentación en regla. Consultá por financiam
 
 #ImportacionHonduras #VehiculosUsados #Honduras`,
 
-        instagram:`IDEA VISUAL: Foto o Reel corto mostrando el vehículo — arranca con un plano general, después detalles (llantas, interior, motor).
-
-CAPTION:
-${nombre}${color} 🔥
-
-${rasgos?`${rasgos}\n`:""}💰 ${precioL}${precioU?` (${precioU})`:""}
-
-Importado directo, sin intermediarios. DM o WhatsApp: ${wa} 📲
-
-#ImportacionHonduras #${selVeh.marca.replace(/\s+/g,"")} #CarrosUsados #Honduras #Subasta #VehiculosImportados #Tegucigalpa #SanPedroSula #CarrosHN #ImportacionVehicular #Danli`,
-
         tiktok:`GANCHO (cámara, primeros 3 seg): "¿Buscás un ${selVeh.marca} sin pagar precio de agencia?"
 
 TEXTO EN PANTALLA: "${nombre} — Importado 🇺🇸➡️🇭🇳"
@@ -2816,17 +2746,6 @@ Este es uno de los temas que más nos preguntan en ${empresa}. La importación d
 
 #ImportacionVehiculos #Honduras #AsesoriaGratis`,
 
-        instagram:`IDEA VISUAL: Carrusel de 3-4 slides o Reel explicando el tema con texto en pantalla, o una foto relacionada con un dato destacado sobreimpreso.
-
-CAPTION:
-${tema} 💡
-
-Este es uno de los temas que más nos preguntan en ${empresa}. Guardá este post para cuando lo necesites 📌
-
-¿Dudas sobre tu caso? Escribinos: ${wa}
-
-#ImportacionHonduras #Honduras #CarrosUsados #TipsDeImportacion #Aduanas #Subasta #CarrosHN #AsesoriaGratis #Tegucigalpa #SanPedroSula`,
-
         tiktok:`GANCHO: "${tema}" (leer directo a cámara, tono de pregunta genuina)
 
 TEXTO EN PANTALLA: título del tema resumido en 4-5 palabras
@@ -2849,7 +2768,17 @@ Tags sugeridos: importacion honduras, ${empresa.toLowerCase().replace(/\s+/g,"")
 
 4/ ¿Preguntas? ${wa} 📲 #Honduras #Importacion`,
 
-        educativo:generarPlanContenido(tema,duracionPlan,empresa),
+        educativo:`📅 PLAN DE CONTENIDO — 1 semana — Tema base: "${tema}"
+
+Día 1 (Lunes) — WhatsApp/Estado: Presentá el tema con un dato sorprendente o una pregunta directa.
+Día 2 (Martes) — Facebook: Desarrollá el tema completo con 3-4 puntos clave y una imagen relacionada.
+Día 3 (Miércoles) — TikTok/Reel: Versión corta y visual del mismo tema, con gancho fuerte en los primeros 3 segundos.
+Día 4 (Jueves) — Telegram: Resumen del tema en formato de lista rápida, fácil de leer.
+Día 5 (Viernes) — Vehículo disponible: Aprovechá para mostrar un vehículo que se relacione con el tema (ej. si el tema es sobre pickups, mostrá una pickup disponible).
+Día 6 (Sábado) — X/Twitter: Hilo corto retomando el tema con un ángulo distinto o una pregunta a la audiencia.
+Día 7 (Domingo) — Descanso o repost del contenido de mayor alcance de la semana.
+
+💡 Sugerencia: este mismo tema se puede repetir en 2-3 meses con un ángulo nuevo (ej. un caso real de un cliente, o una actualización de precios/trámites).`,
       };
       out=textosEdu[plat]||textosEdu.whatsapp;
     }
@@ -2881,7 +2810,6 @@ Tags sugeridos: importacion honduras, ${empresa.toLowerCase().replace(/\s+/g,"")
           telegram:`Crea un mensaje para canal de Telegram anunciando este vehículo. Telegram permite formato enriquecido: usa **texto en negrita** para el título y precio, _cursiva_ para detalles, emojis estratégicos. Máximo 400 caracteres para que no se corte. En español hondureño. Tono profesional y atractivo. Termina con link de WhatsApp o contacto. El mensaje debe verse elegante en un canal de Telegram.`,
           twitter:`Crea un hilo de Twitter/X de 3-4 tweets anunciando este vehículo. Cada tweet máximo 280 caracteres. El primero debe ser el gancho que hace parar el scroll. Incluye precio en Lempiras. Usar hashtags relevantes. En español hondureño.`,
           facebook:`Incluye: gancho inicial llamativo, descripción del vehículo con sus puntos fuertes, precio en Lempiras y dólares, llamada a la acción. Máximo 200 palabras. Sugiere también 3 hashtags relevantes para Honduras. En español hondureño.`,
-          instagram:`Crea contenido para Instagram anunciando este vehículo. Primero describí brevemente qué mostrar en la imagen o Reel (composición visual). Después el caption: gancho corto, 2-3 datos clave del vehículo, precio, llamada a la acción con emoji de DM/WhatsApp. Sugiere entre 8 y 12 hashtags relevantes para Honduras (mezcla de específicos y generales). Tono cercano, en español hondureño. Máximo 150 palabras en el caption.`,
           tiktok:`Crea un SCRIPT completo para un video de TikTok o Reel de 30-45 segundos anunciando este vehículo. Formato:
 1. GANCHO (primeros 3 segundos — lo que SE DICE en cámara)
 2. TEXTO EN PANTALLA (lo que aparece escrito)
@@ -2910,14 +2838,9 @@ IMPORTANTE: El contenido debe sonar humano y natural, no como robot. Que genere 
           telegram:`Crea 2 mensajes para canal de Telegram educativos sobre: "${tema}". Telegram permite **negrita** y _cursiva_. Máximo 400 caracteres cada uno. Que sean informativos y terminen posicionando a ${empresa} como expertos.`,
           twitter:`Crea un hilo de 4 tweets educativos sobre: "${tema}". Cada tweet máximo 280 caracteres. Que el primero sea un dato sorprendente. Con hashtags. En español.`,
           facebook:`Que sea informativo y útil, posicionando a ${empresa} como expertos. Incluye datos concretos, usa lenguaje de Honduras. Al final, llamada sutil a la acción. Con hashtags sugeridos.`,
-          instagram:`Crea contenido educativo para Instagram sobre: "${tema}". Primero describí qué mostrar visualmente (carrusel de slides con datos, o Reel). Después el caption: gancho corto, 2-3 puntos clave del tema, cierre invitando a guardar el post o escribir por dudas. Sugiere entre 8 y 12 hashtags relevantes para Honduras. Tono cercano y educativo, en español hondureño. Máximo 150 palabras.`,
           tiktok:`Crea el guión completo para un TikTok educativo sobre: "${tema}". Duración: 45-60 segundos. Que empiece con un dato sorprendente o pregunta intrigante que haga parar el scroll. Formato con GANCHO / DESARROLLO / CIERRE. Muy dinámico, ritmo rápido, lenguaje de Honduras.`,
           youtube:`Crea un guión completo para un video de YouTube de 3-5 minutos sobre: "${tema}". Incluye: intro, desarrollo con puntos clave, ejemplos reales del mercado hondureño, cierre y suscripción. También crea título SEO optimizado, descripción completa y 8 tags.`,
-          educativo:duracionPlan==="semanal"
-            ?`Crea un plan de contenido de 1 semana (7 días) sobre el tema: "${tema}". Para cada día, sugiere: tema específico, plataforma ideal, formato (post, video, historia), gancho principal y puntos clave a cubrir. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras.`
-            :duracionPlan==="mensual"
-            ?`Crea un plan de contenido de 1 mes (4 semanas) sobre el tema: "${tema}". Para cada semana, sugiere: sub-tema o ángulo específico, plataformas a usar, formato, y 2-3 ideas de publicación concretas. Es importante que cada semana aporte algo distinto (no repetir el mismo ángulo) y que el plan avance de lo educativo hacia mostrar vehículos y casos reales. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras.`
-            :`Crea un plan de contenido de 1 trimestre (3 meses) sobre el tema: "${tema}". Para cada mes, sugiere el enfoque general (mes 1 educativo, mes 2 vehículos/prueba social, mes 3 repetición con ángulo renovado), plataformas prioritarias, y 3-4 ideas concretas de publicación por mes. Explica también cómo evitar que el contenido se sienta repetitivo al repetir temas de un mes a otro. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras a largo plazo.`,
+          educativo:`Crea un plan de contenido de 1 semana completo sobre el tema: "${tema}". Para cada día, sugiere: tema específico, plataforma ideal, formato (post, video, historia), gancho principal y puntos clave a cubrir. El objetivo es posicionar a ${empresa} como la referencia en importación de vehículos en Honduras.`,
         };
 
         prompt=`Eres un experto en marketing digital para el mercado hondureño, especializado en el sector de importación de vehículos desde subastas americanas.
@@ -3065,20 +2988,6 @@ El contenido debe: ser 100% en español hondureño natural, aportar valor real (
         ))}
       </div>
     </div>
-
-    {/* Duración del plan — solo aplica a "Plan de Contenido" */}
-    {plat==="educativo"&&<div>
-      <label className="text-xs text-slate-400 block mb-2">Duración del plan</label>
-      <div className="grid grid-cols-3 gap-2">
-        {[["semanal","📅 Semanal","7 días"],["mensual","🗓️ Mensual","4 semanas"],["trimestral","📆 Trimestral","3 meses"]].map(([v,l,sub])=>(
-          <button key={v} onClick={()=>setDuracionPlan(v)}
-            className={`py-2 rounded-xl text-xs font-bold border-2 transition-all ${duracionPlan===v?"border-purple-500 bg-purple-900/40 text-purple-300":"border-white/15 text-slate-500"}`}>
-            <span className="block">{l}</span>
-            <span className="text-[10px] text-slate-600">{sub}</span>
-          </button>
-        ))}
-      </div>
-    </div>}
 
     <div className="flex items-center justify-between text-xs mb-1">
       <span className="text-slate-500">Motor de contenido:</span>
@@ -3595,7 +3504,7 @@ function ReportesScreen({vehiculos,users,clientes,config}){
 // ══════════════════════════════════════════════════════════════
 // ADMIN
 // ══════════════════════════════════════════════════════════════
-function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes,gruaLocalHN,setGruaLocalHN,catalogo,setCatalogo}){
+function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes}){
   const [tab,setTab]=useState("general");
   const [showUser,setShowUser]=useState(false);
   const [editUser,setEditUser]=useState(null);
@@ -3608,30 +3517,6 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
   const [subiendoLogo,setSubiendoLogo]=useState(false);
 
   const showMsg=(txt,ok=true)=>{setMsg({txt,ok});setTimeout(()=>setMsg(null),2500);};
-
-  const [catQ,setCatQ]=useState("");
-  const [showCatForm,setShowCatForm]=useState(false);
-  const [editCat,setEditCat]=useState(null);
-  const [catErr,setCatErr]=useState("");
-  const filtCatalogo=useMemo(()=>{
-    const q=catQ.trim().toLowerCase();
-    if(!q) return (catalogo||[]).slice(0,30);
-    return (catalogo||[]).filter(c=>(c.marca+" "+c.modelo).toLowerCase().includes(q)).slice(0,30);
-  },[catalogo,catQ]);
-
-  async function saveCatalogoItem(data){
-    setCatErr("");
-    if(!data.marca||!data.modelo){setCatErr("Marca y modelo son obligatorios");return;}
-    const obj=editCat
-      ?{...editCat,...data}
-      :{id:(data.marca+"_"+data.modelo+"_"+Date.now()).toLowerCase().replace(/\s+/g,"_"),...data};
-    try{
-      await dbUpsert("catalogo_vehiculos",[obj]);
-      setCatalogo(prev=>editCat?prev.map(c=>c.id===editCat.id?obj:c):[obj,...(prev||[])]);
-      setShowCatForm(false);setEditCat(null);
-      showMsg("✅ Catálogo actualizado");
-    }catch(e){setCatErr("Error al guardar: "+e.message);}
-  }
 
   async function saveUser(data){
     const pin=data.pin?hashPin(data.pin):null;
@@ -3701,7 +3586,7 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
   const copartFee=precios?.buyer_fee_copart||COPART_FEE.map(([max,fee])=>({max,fee}));
   const iaaiFee=precios?.buyer_fee_iaai||IAAI_FEE.map(([max,fee])=>({max,fee}));
 
-  const TABS=[["general","⚙️ General"],["ia","🤖 Motor de IA"],["catalogo","📋 Catálogo"],["fletes","🚢 Fletes"],["gruas","🚛 Grúas USA"],["grua_hn","🏘️ Grúa HN"],["fees","💳 Buyer Fees"],["usuarios","👤 Usuarios"]];
+  const TABS=[["general","⚙️ General"],["ia","🤖 Motor de IA"],["fletes","🚢 Fletes"],["gruas","🚛 Grúas USA"],["grua_hn","🏘️ Grúa HN"],["fees","💳 Buyer Fees"],["usuarios","👤 Usuarios"]];
 
   return <div className="p-4 pb-24">
     <h2 className="text-xl font-black text-white mb-4">⚙️ Administración</h2>
@@ -3919,41 +3804,12 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
       </Card>
     </div>}
 
-    {/* ── TAB: CATÁLOGO DE VEHÍCULOS ── */}
-    {tab==="catalogo"&&<div className="space-y-3">
-      <Card>
-        <div className="flex justify-between items-center mb-2">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">📋 Catálogo de Referencia ({(catalogo||[]).length} modelos)</p>
-          <Btn onClick={()=>{setEditCat(null);setCatErr("");setShowCatForm(true);}} small>+ Modelo</Btn>
-        </div>
-        <p className="text-xs text-slate-500 mb-3">Agregá marcas y modelos que no estén en la lista, o corregí precios de referencia.</p>
-        <input value={catQ} onChange={e=>setCatQ(e.target.value)} placeholder="Buscar marca o modelo..."
-          className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400 placeholder-slate-600 mb-3"/>
-        <div className="space-y-1 max-h-96 overflow-y-auto">
-          {filtCatalogo.map(c=>(
-            <div key={c.id} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
-              <div>
-                <span className="text-white text-sm font-semibold">{c.marca} {c.modelo}</span>
-                <span className="text-slate-500 text-xs ml-2">{c.generacion||`${c.año_inicio||""}-${c.año_fin||""}`}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-400 text-xs">${c.precio_hn_bajo||0}-${c.precio_hn_alto||0}</span>
-                <Btn onClick={()=>{setEditCat(c);setCatErr("");setShowCatForm(true);}} color="gray" small>✏️</Btn>
-              </div>
-            </div>
-          ))}
-          {filtCatalogo.length===0&&<p className="text-xs text-slate-600 text-center py-4">No se encontraron modelos. Agregá uno nuevo con "+ Modelo".</p>}
-        </div>
-      </Card>
-      {showCatForm&&<CatalogoFormModal item={editCat} onClose={()=>{setShowCatForm(false);setEditCat(null);}} onSave={saveCatalogoItem} err={catErr}/>}
-    </div>}
-
     {/* ── TAB: FLETES ── */}
     {tab==="fletes"&&<Card>
       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">🚢 Fletes Marítimos por Tipo de Vehículo</p>
       <p className="text-xs text-slate-500 mb-3">Precios en USD por tipo de vehículo y puerto de exportación</p>
-      <div className="grid grid-cols-5 gap-1 text-xs font-bold text-slate-400 mb-2 px-1">
-        <span>Tipo</span><span className="text-center">🌴 FL</span><span className="text-center">⭐ TX</span><span className="text-center">🦅 DE</span><span></span>
+      <div className="grid grid-cols-4 gap-1 text-xs font-bold text-slate-400 mb-2 px-1">
+        <span>Tipo</span><span className="text-center">🌴 FL</span><span className="text-center">⭐ TX</span><span className="text-center">🦅 DE</span>
       </div>
       {(fletes||[]).map(row=><FleteRow key={row.id} row={row} onSave={saveFlete} disabled={saving}/>)}
     </Card>}
@@ -4059,7 +3915,7 @@ function AdminScreen({users,setUsers,session,config,setConfig,precios,setPrecios
     {tab==="usuarios"&&<Card>
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Usuarios ({users.length}/10)</p>
-        {users.length<10&&<Btn onClick={()=>{setEditUser(null);setShowUser(true);}} small>+ Usuario</Btn>}
+        {users.length<10&&<Btn onClick={()=>setShowUser(true)} small>+ Usuario</Btn>}
       </div>
       {users.map(u=><div key={u.id} className={`flex items-center justify-between py-2.5 border-b border-white/5 ${!u.activo?"opacity-50":""}`}>
         <div><p className="text-white font-semibold text-sm">{u.nombre}</p><p className="text-slate-400 text-xs">@{u.usuario} · {ROLES[u.rol]||u.rol} · {u.activo?"✅":"❌"}</p></div>
@@ -4193,13 +4049,13 @@ function FleteRow({row,onSave,disabled}){
     setOk(true);setTimeout(()=>setOk(false),1500);
   }
   return <div className="border-b border-white/5 py-2">
-    <div className="grid grid-cols-5 gap-1 items-center">
-      <p className="text-xs text-slate-300 font-semibold">{row.tipo_vehiculo}</p>
+    <p className="text-xs text-slate-300 font-semibold mb-1.5">{row.tipo_vehiculo}</p>
+    <div className="grid grid-cols-4 gap-1 items-center">
       {[[fl,setFl],[tx,setTx],[de,setDe]].map(([v,sv],i)=>(
         <input key={i} type="number" value={v} onChange={e=>sv(e.target.value)}
           className="bg-white/10 text-white border border-white/20 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-blue-400 text-center"/>
       ))}
-      <Btn onClick={save} disabled={disabled} small color={ok?"green":"blue"}>{ok?"✅":"💾"}</Btn>
+      <Btn onClick={save} disabled={disabled} small color={ok?"green":"gray"}>{ok?"✅":"OK"}</Btn>
     </div>
   </div>;
 }
@@ -4262,100 +4118,19 @@ function BuyerFeeTable({title,data,clave,onSave,disabled}){
   </Card>;
 }
 
-function CatalogoFormModal({item,onClose,onSave,err}){
-  const [f,setF]=useState({
-    marca:item?.marca||"",modelo:item?.modelo||"",generacion:item?.generacion||"",
-    año_inicio:item?.año_inicio||"",año_fin:item?.año_fin||"",
-    cilindrada_cc:item?.cilindrada_cc||"",combustible:item?.combustible||"gasolina",
-    tipo_vehiculo:item?.tipo_vehiculo||"Turismo Grande",carroceria:item?.carroceria||"",
-    cafta_aplica:item?.cafta_aplica||false,
-    precio_hn_bajo:item?.precio_hn_bajo||"",precio_hn_alto:item?.precio_hn_alto||"",
-    observaciones:item?.observaciones||"",
-  });
-  const s=(k,v)=>setF(p=>({...p,[k]:v}));
-  function guardar(){
-    if(!f.marca||!f.modelo)return;
-    onSave({
-      ...f,
-      año_inicio:f.año_inicio?parseInt(f.año_inicio):null,
-      año_fin:f.año_fin?parseInt(f.año_fin):null,
-      cilindrada_cc:f.cilindrada_cc?parseInt(f.cilindrada_cc):null,
-      precio_hn_bajo:f.precio_hn_bajo?parseInt(f.precio_hn_bajo):null,
-      precio_hn_alto:f.precio_hn_alto?parseInt(f.precio_hn_alto):null,
-    });
-  }
-  return <Modal title={item?"Editar Modelo":"Nuevo Modelo del Catálogo"} onClose={onClose}>
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2">
-        <Inp label="Marca" value={f.marca} onChange={v=>s("marca",v)} placeholder="Toyota" req/>
-        <Inp label="Modelo" value={f.modelo} onChange={v=>s("modelo",v)} placeholder="Corolla" req/>
-      </div>
-      <Inp label="Generación (texto libre, ej: 2014-2019)" value={f.generacion} onChange={v=>s("generacion",v)} placeholder="2014-2019"/>
-      <div className="grid grid-cols-2 gap-2">
-        <Inp label="Año inicio" value={f.año_inicio} onChange={v=>s("año_inicio",v)} type="number" placeholder="2014"/>
-        <Inp label="Año fin" value={f.año_fin} onChange={v=>s("año_fin",v)} type="number" placeholder="2019"/>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Inp label="Cilindrada (cc)" value={f.cilindrada_cc} onChange={v=>s("cilindrada_cc",v)} type="number" placeholder="1800"/>
-        <Sel label="Combustible" value={f.combustible} onChange={v=>s("combustible",v)}
-          options={[{v:"gasolina",l:"Gasolina"},{v:"diesel",l:"Diésel"},{v:"hibrido",l:"Híbrido"},{v:"electrico",l:"Eléctrico"}]}/>
-      </div>
-      <Sel label="Tipo de Vehículo" value={f.tipo_vehiculo} onChange={v=>s("tipo_vehiculo",v)}
-        options={[{v:"Turismo Chico",l:"Turismo Chico"},{v:"Turismo Grande",l:"Turismo Grande"},{v:"Camioneta/SUV",l:"Camioneta/SUV"},{v:"Pick-Up",l:"Pick-Up"},{v:"Camión",l:"Camión"},{v:"Bus de Pasajeros",l:"Bus de Pasajeros"},{v:"Van",l:"Van"}]}/>
-      <Inp label="Carrocería" value={f.carroceria} onChange={v=>s("carroceria",v)} placeholder="Sedan, SUV, Pickup..."/>
-      <div className="grid grid-cols-2 gap-2">
-        <Inp label="Precio HN bajo (USD)" value={f.precio_hn_bajo} onChange={v=>s("precio_hn_bajo",v)} type="number" prefix="$"/>
-        <Inp label="Precio HN alto (USD)" value={f.precio_hn_alto} onChange={v=>s("precio_hn_alto",v)} type="number" prefix="$"/>
-      </div>
-      <label className="flex items-center gap-2 text-sm text-slate-300">
-        <input type="checkbox" checked={f.cafta_aplica} onChange={e=>s("cafta_aplica",e.target.checked)}/>
-        Aplica CAFTA (fabricado en USA — 0% DAI)
-      </label>
-      <div>
-        <label className="text-xs text-slate-400 block mb-1">Observaciones</label>
-        <textarea value={f.observaciones} onChange={e=>s("observaciones",e.target.value)} rows={2}
-          className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none"/>
-      </div>
-      {err&&<p className="text-red-400 text-xs text-center bg-red-900/30 border border-red-800 rounded-lg py-2">{err}</p>}
-      <div className="flex gap-3">
-        <Btn onClick={onClose} color="gray" full>Cancelar</Btn>
-        <Btn onClick={guardar} disabled={!f.marca||!f.modelo} full>Guardar</Btn>
-      </div>
-    </div>
-  </Modal>;
-}
-
 function UserFormModal({user,onClose,onSave}){
   const [f,setF]=useState({nombre:user?.nombre||"",usuario:user?.usuario||"",pin:"",rol:user?.rol||"OPERADOR"});
-  const randId=useMemo(()=>Math.random().toString(36).slice(2),[]);
   return <Modal title={user?"Editar Usuario":"Nuevo Usuario"} onClose={onClose}>
     <div className="space-y-3">
       <Inp label="Nombre Completo" value={f.nombre} onChange={v=>setF(p=>({...p,nombre:v}))} req/>
-
-      <div>
-        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Usuario (login)<span className="text-red-400 ml-0.5">*</span></label>
-        <input type="text" name={`campo_${randId}_a`} value={f.usuario}
-          onChange={e=>setF(p=>({...p,usuario:e.target.value.toLowerCase().replace(/\s/g,"")}))}
-          readOnly autoComplete="off"
-          onFocus={e=>e.target.removeAttribute("readOnly")}
-          className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"/>
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{user?"Nuevo PIN (vacío = no cambiar)":"PIN de Acceso"}<span className="text-red-400 ml-0.5">*</span></label>
-        <input type="password" name={`campo_${randId}_b`} value={f.pin} placeholder="••••"
-          onChange={e=>setF(p=>({...p,pin:e.target.value}))}
-          readOnly autoComplete="off"
-          onFocus={e=>e.target.removeAttribute("readOnly")}
-          className="w-full bg-white/10 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"/>
-      </div>
-
+      <Inp label="Usuario (login)" value={f.usuario} onChange={v=>setF(p=>({...p,usuario:v.toLowerCase().replace(/\s/g,"")}))} req/>
+      <Inp label={user?"Nuevo PIN (vacío = no cambiar)":"PIN de Acceso"} value={f.pin} onChange={v=>setF(p=>({...p,pin:v}))} type="password" placeholder="••••" req={!user}/>
       <Sel label="Rol" value={f.rol} onChange={v=>setF(p=>({...p,rol:v}))} options={Object.entries(ROLES).map(([v,l])=>({v,l}))}/>
       <div className="bg-white/5 rounded-xl p-3 text-xs text-slate-400">
         <p className="font-bold text-slate-300 mb-1">Permisos:</p>
         {{ADMIN:"Acceso total al sistema",GERENTE:"Solo reportes — sin modificar datos",OPERADOR:"Registrar vehículos y ventas",AUDITOR:"Solo lectura"}[f.rol]}
       </div>
-      <div className="flex gap-3"><Btn onClick={onClose} color="gray" full>Cancelar</Btn><Btn onClick={()=>{if(!f.nombre||!f.usuario||(!user&&!f.pin))return;onSave(f);}} full>Guardar</Btn></div>
+      <div className="flex gap-3"><Btn onClick={onClose} color="gray" full>Cancelar</Btn><Btn onClick={()=>{if(!f.nombre||!f.usuario)return;onSave(f);}} full>Guardar</Btn></div>
     </div>
   </Modal>;
 }
@@ -4598,7 +4373,7 @@ function DocumentosKoreaChecklist(){
   </div>;
 }
 
-function KoreaImportScreen({config,vehiculos,setVehiculos,clientes,precios,gruaLocalHN}){
+function KoreaImportScreen({config,vehiculos,setVehiculos,clientes,precios}){
   const tc=config?.tc||25.20;
   const motorIA=precios?.motor_ia||"local"; // "local" (gratis) | "claude" (Opción 2)
   const [tab,setTab]=useState("calculadora"); // calculadora | buscar | registrar
@@ -4618,7 +4393,6 @@ function KoreaImportScreen({config,vehiculos,setVehiculos,clientes,precios,gruaL
     cliente_id:"",
   });
   const [resultado,setResultado]=useState(null);
-  const [destCiudad,setDestCiudad]=useState("Danlí / El Paraíso");
   const [busqQ,setQ2]=useState("");
   const [busqFiltros,setBusqFiltros]=useState({
     tipo:"bus_county",
@@ -7085,14 +6859,12 @@ function App(){
         if(!creds?.url||!creds?.key){ setScreen("setup"); return; }
         _url=creds.url; _key=creds.key;
         const usrsFrescos=await loadData();
-        const sess=await sessGet(K_SESS);
-        const SESION_MAX_HORAS=12;
-        const sesionVencida=sess?.loginAt&&(Date.now()-new Date(sess.loginAt).getTime())>SESION_MAX_HORAS*3600*1000;
-        if(sess?.userId&&!sesionVencida){
+        const sess=await pget(K_SESS);
+        if(sess?.userId){
           const u=(usrsFrescos||[]).find(u=>u.id===sess.userId);
           if(u&&u.activo){ setSession({user:u,loginAt:sess.loginAt}); setScreen("dashboard"); window.history.replaceState({gemaScreen:"dashboard"},"",""); }
           else setScreen("login");
-        } else { await sessSet(K_SESS,null); setScreen("login"); }
+        } else setScreen("login");
       }catch(e){ setErr("Error de conexión: "+e.message); setScreen("setup"); }
     }
     init();
@@ -7171,22 +6943,10 @@ function App(){
   }
 
   async function handleLogin(usuario,pin){
-    const K_INTENTOS="iv3_login_intentos_"+usuario.toLowerCase();
-    const intentos=JSON.parse(localStorage.getItem(K_INTENTOS)||'{"fallos":0,"hasta":0}');
-    if(intentos.hasta&&Date.now()<intentos.hasta){
-      const minutos=Math.ceil((intentos.hasta-Date.now())/60000);
-      throw new Error(`Demasiados intentos fallidos. Esperá ${minutos} minuto(s) antes de volver a intentar.`);
-    }
     const u=users.find(u=>u.usuario===usuario&&u.pin===hashPin(pin)&&u.activo);
-    if(!u){
-      const nuevosFallos=(intentos.fallos||0)+1;
-      const bloqueo=nuevosFallos>=5?{fallos:0,hasta:Date.now()+5*60000}:{fallos:nuevosFallos,hasta:0};
-      localStorage.setItem(K_INTENTOS,JSON.stringify(bloqueo));
-      return false;
-    }
-    localStorage.removeItem(K_INTENTOS);
+    if(!u) return false;
     const sess={userId:u.id,loginAt:new Date().toISOString()};
-    await sessSet(K_SESS,sess);
+    await pset(K_SESS,sess);
     setSession({user:u,loginAt:sess.loginAt});
     setScreen("dashboard");
     window.history.replaceState({gemaScreen:"dashboard"},"","");
@@ -7194,7 +6954,7 @@ function App(){
   }
 
   async function handleLogout(){
-    await sessSet(K_SESS,null);
+    await pset(K_SESS,null);
     setSession(null); setScreen("login");
     window.history.replaceState({gemaScreen:"login"},"","");
   }
@@ -7203,7 +6963,7 @@ function App(){
     setScreen("setup");
   }
 
-  const ctx={session,users,setUsers,vehiculos,setVehiculos,clientes,setClientes,catalogo,setCatalogo,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes,gruaLocalHN,setGruaLocalHN,pedidos,setPedidos,proveedores,setProveedores,handleLogout};
+  const ctx={session,users,setUsers,vehiculos,setVehiculos,clientes,setClientes,catalogo,config,setConfig,precios,setPrecios,gruas,setGruas,fletes,setFletes,gruaLocalHN,setGruaLocalHN,pedidos,setPedidos,proveedores,setProveedores,handleLogout};
 
   if(screen==="loading") return(
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-4">
@@ -7256,7 +7016,7 @@ function App(){
               {screen==="vehiculos"&&<ErrorBoundary><VehiculosScreen {...ctx}/></ErrorBoundary>}
               {screen==="ia"&&<ErrorBoundary><AnalisisIAScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config} partesPorModelo={partesPorModelo}/></ErrorBoundary>}
               {screen==="puja"&&<ErrorBoundary><MaxBidScreen catalogo={catalogo} gruas={gruas} fletes={fletes} precios={precios} gruaLocalHN={gruaLocalHN} config={config}/></ErrorBoundary>}
-              {screen==="korea"&&<ErrorBoundary><KoreaImportScreen config={config} vehiculos={vehiculos} setVehiculos={setVehiculos} clientes={clientes} precios={precios} gruaLocalHN={gruaLocalHN}/></ErrorBoundary>}
+              {screen==="korea"&&<ErrorBoundary><KoreaImportScreen config={config} vehiculos={vehiculos} setVehiculos={setVehiculos} clientes={clientes} precios={precios}/></ErrorBoundary>}
               {screen==="marketing"&&<ErrorBoundary><MarketingScreen vehiculos={vehiculos} clientes={clientes} config={config} precios={precios}/></ErrorBoundary>}
               {screen==="clientes"&&<ErrorBoundary><ClientesScreen clientes={clientes} setClientes={setClientes} vehiculos={vehiculos} session={session} config={config}/></ErrorBoundary>}
               {screen==="proveedores"&&<ErrorBoundary><ProveedoresScreen proveedores={proveedores} setProveedores={setProveedores} session={session} config={config}/></ErrorBoundary>}
